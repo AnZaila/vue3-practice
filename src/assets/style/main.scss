@@ -1,0 +1,15 @@
+@use './base.scss';
+
+#app {
+  min-height: 100vh;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+::selection {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}

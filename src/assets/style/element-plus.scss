@@ -1,0 +1,29 @@
+:root {
+  --el-color-primary: #4f7cff;
+  --el-color-primary-light-3: #7393ff;
+  --el-color-primary-light-5: #a5b9ff;
+  --el-color-primary-light-7: #d7e0ff;
+  --el-color-primary-light-8: #e9eeff;
+  --el-color-primary-light-9: #f5f7ff;
+  --el-border-radius-base: 12px;
+  --el-font-family: 'Avenir Next', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+.el-button--primary {
+  box-shadow: 0 10px 24px rgba(79, 124, 255, 0.16);
+}
+
+.el-card {
+  --el-card-border-radius: 20px;
+  --el-card-bg-color: #fff;
+}
+
+.el-input__wrapper,
+.el-select__wrapper {
+  border-radius: 12px;
+}
+
+.el-table {
+  --el-table-header-bg-color: #fafbfc;
+  --el-table-border-color: #edf0f4;
+}
