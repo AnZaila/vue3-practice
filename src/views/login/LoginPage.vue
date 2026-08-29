@@ -48,8 +48,8 @@ function handleLogin() {
   align-items: center;
   padding: 48px;
   background:
-    radial-gradient(circle at 12% 18%, rgba(79, 124, 255, 0.12), transparent 24%),
-    linear-gradient(135deg, #f8fafc, #eef2f7);
+    radial-gradient(circle at 12% 18%, rgba(79, 124, 255, 0.18), transparent 24%),
+    linear-gradient(135deg, var(--color-bg), var(--color-surface-muted));
 }
 
 .login-copy {
@@ -73,7 +73,7 @@ function handleLogin() {
 .eyebrow {
   display: inline-block;
   margin-bottom: 18px;
-  color: #4f7cff;
+  color: var(--color-primary);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.22em;
@@ -82,8 +82,8 @@ function handleLogin() {
 .login-card {
   border: 1px solid var(--color-border);
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 20px 60px rgba(17, 24, 39, 0.08);
+  background: var(--color-surface-glass);
+  box-shadow: 0 20px 60px var(--color-shadow);
 
   h2 {
     margin: 0 0 18px;

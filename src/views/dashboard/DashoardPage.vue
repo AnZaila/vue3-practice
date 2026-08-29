@@ -4,7 +4,7 @@
       <div class="hero-copy">
         <span class="eyebrow">OPERATION CENTER</span>
         <h2>上午好，林知远</h2>
-        <p>今天先处理 12 项待办，平台整体运行稳定，近 7 日访问量继续上升。</p>
+        <p>今天先处理 12 项待办，平台整体运行稳定，近 7 日访问量持续上升。</p>
       </div>
       <div class="hero-panel">
         <div class="hero-stat">
@@ -23,11 +23,50 @@
     </section>
 
     <section class="metric-grid">
-      <article v-for="item in metrics" :key="item.label" class="metric-card">
+      <article v-for="item in dashboard.metrics" :key="item.label" class="metric-card">
         <span class="metric-label">{{ item.label }}</span>
         <strong>{{ item.value }}</strong>
-        <em :class="item.trendType">{{ item.trend }}</em>
+        <em :class="item.trendType">{{ item.trend }} 较上周</em>
       </article>
+    </section>
+
+    <section class="chart-grid">
+      <el-card shadow="never" class="panel-card chart-card">
+        <template #header>
+          <div class="panel-title">
+            <div>
+              <strong>访问趋势</strong>
+              <span>近 7 日访问量变化</span>
+            </div>
+            <el-tag type="success" effect="light">实时</el-tag>
+          </div>
+        </template>
+        <EChartPanel :option="trafficOption" height="300px" />
+      </el-card>
+
+      <el-card shadow="never" class="panel-card chart-card">
+        <template #header>
+          <div class="panel-title">
+            <div>
+              <strong>访问来源</strong>
+              <span>用户访问渠道占比</span>
+            </div>
+          </div>
+        </template>
+        <EChartPanel :option="sourceOption" height="300px" />
+      </el-card>
+
+      <el-card shadow="never" class="panel-card chart-card chart-card-wide">
+        <template #header>
+          <div class="panel-title">
+            <div>
+              <strong>工单处理量</strong>
+              <span>已完成与待处理数量对比</span>
+            </div>
+          </div>
+        </template>
+        <EChartPanel :option="orderOption" height="300px" />
+      </el-card>
     </section>
 
     <section class="content-grid">
@@ -39,7 +78,7 @@
           </div>
         </template>
         <div class="task-list">
-          <div v-for="task in tasks" :key="task.title" class="task-item">
+          <div v-for="task in dashboard.tasks" :key="task.title" class="task-item">
             <div>
               <strong>{{ task.title }}</strong>
               <p>{{ task.desc }}</p>
@@ -52,17 +91,17 @@
       <el-card shadow="never" class="panel-card">
         <template #header>
           <div class="panel-title">
-            <strong>数据趋势</strong>
-            <span>近 5 日活跃度</span>
+            <strong>学习提示</strong>
+            <span>静态数据模拟接口</span>
           </div>
         </template>
-        <div class="trend-list">
-          <div v-for="item in trends" :key="item.day" class="trend-row">
-            <span>{{ item.day }}</span>
-            <div class="trend-bar">
-              <i :style="{ width: `${item.rate}%` }"></i>
-            </div>
-            <strong>{{ item.value }}</strong>
+        <div class="learning-tip">
+          <div class="tip-index">01</div>
+          <div>
+            <strong>数据与视图分离</strong>
+            <p>
+              当前页面从 <code>src/mock/dashboard.ts</code> 获取数据，替换为真实接口时只需要调整数据来源。
+            </p>
           </div>
         </div>
       </el-card>
@@ -71,41 +110,74 @@
 </template>
 
 <script setup lang="ts">
-const metrics = [
-  { label: '本周新增用户', value: '326', trend: '+18.2%', trendType: 'up' },
-  { label: '待处理工单', value: '47', trend: '-6.4%', trendType: 'down' },
-  { label: '接口响应时长', value: '182ms', trend: '-12ms', trendType: 'down' },
-  { label: '活跃角色数', value: '14', trend: '+2', trendType: 'up' },
-]
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import EChartPanel from '@/components/EChartPanel.vue'
+import { createOrderOption, createSourceOption, createTrafficOption } from '@/charts/dashboard'
+import { fetchDashboardData } from '@/mock/dashboard'
+import type { DashboardChartTheme, DashboardData } from '@/types/dashboard'
 
-const tasks = [
-  {
-    title: '审核新注册企业账号',
-    desc: '包含 8 条资料待复核，建议优先完成。',
-    tag: '高',
-    type: 'danger',
-  },
-  {
-    title: '同步权限策略变更',
-    desc: '角色权限需要在今晚发布窗口前确认。',
-    tag: '中',
-    type: 'warning',
-  },
-  {
-    title: '导出运营日报',
-    desc: '数据已完成聚合，待发送给业务负责人。',
-    tag: '低',
-    type: 'success',
-  },
-]
+const dashboard = ref<DashboardData>({
+  metrics: [],
+  tasks: [],
+  traffic: { days: [], values: [] },
+  sources: [],
+  orders: { days: [], completed: [], pending: [] },
+})
 
-const trends = [
-  { day: '周一', rate: 72, value: '72%' },
-  { day: '周二', rate: 82, value: '82%' },
-  { day: '周三', rate: 64, value: '64%' },
-  { day: '周四', rate: 91, value: '91%' },
-  { day: '周五', rate: 87, value: '87%' },
-]
+const fallbackThemeColors: DashboardChartTheme = {
+  muted: '#667085',
+  strong: '#111827',
+  border: '#e5e7eb',
+  surface: '#ffffff',
+}
+
+const themeColors = ref<DashboardChartTheme>(fallbackThemeColors)
+let themeMediaQuery: MediaQueryList | undefined
+let themeObserver: MutationObserver | undefined
+
+function readThemeColors(): DashboardChartTheme {
+  if (typeof window === 'undefined') {
+    return fallbackThemeColors
+  }
+
+  const styles = getComputedStyle(document.documentElement)
+
+  return {
+    muted: styles.getPropertyValue('--color-text-muted').trim() || fallbackThemeColors.muted,
+    strong: styles.getPropertyValue('--color-text-strong').trim() || fallbackThemeColors.strong,
+    border: styles.getPropertyValue('--color-border').trim() || fallbackThemeColors.border,
+    surface: styles.getPropertyValue('--color-surface').trim() || fallbackThemeColors.surface,
+  }
+}
+
+function syncThemeColors() {
+  themeColors.value = readThemeColors()
+}
+
+const trafficOption = computed(() => createTrafficOption(dashboard.value.traffic, themeColors.value))
+const sourceOption = computed(() => createSourceOption(dashboard.value.sources, themeColors.value))
+const orderOption = computed(() => createOrderOption(dashboard.value.orders, themeColors.value))
+
+onMounted(async () => {
+  syncThemeColors()
+  themeObserver = new MutationObserver(syncThemeColors)
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  })
+
+  if (!document.documentElement.dataset.theme) {
+    themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    themeMediaQuery.addEventListener('change', syncThemeColors)
+  }
+
+  dashboard.value = await fetchDashboardData()
+})
+
+onBeforeUnmount(() => {
+  themeObserver?.disconnect()
+  themeMediaQuery?.removeEventListener('change', syncThemeColors)
+})
 </script>
 
 <style scoped lang="scss">
@@ -115,7 +187,8 @@ const trends = [
 }
 
 .hero-card,
-.content-grid {
+.content-grid,
+.chart-grid {
   display: grid;
   gap: 20px;
 }
@@ -125,9 +198,9 @@ const trends = [
   padding: 28px;
   border: 1px solid var(--color-border);
   border-radius: 24px;
-  background: linear-gradient(180deg, #ffffff, #fbfcfe);
+  background: linear-gradient(180deg, var(--color-surface-glass), var(--color-surface-muted));
   color: var(--ink);
-  box-shadow: 0 18px 50px rgba(17, 24, 39, 0.06);
+  box-shadow: 0 18px 50px var(--color-shadow);
 }
 
 .hero-copy {
@@ -137,7 +210,7 @@ const trends = [
 .eyebrow {
   display: inline-block;
   margin-bottom: 12px;
-  color: #4f7cff;
+  color: var(--color-primary);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.2em;
@@ -171,8 +244,8 @@ const trends = [
   align-items: end;
   justify-content: space-between;
   padding: 18px 20px;
-  background: #f8fafc;
-  border: 1px solid #edf1f6;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
 }
 
 .hero-stat strong {
@@ -194,7 +267,7 @@ const trends = [
   padding: 22px;
   border: 1px solid var(--color-border);
   background: var(--color-surface);
-  box-shadow: 0 12px 32px rgba(17, 24, 39, 0.05);
+  box-shadow: 0 12px 32px var(--color-shadow-soft);
 }
 
 .metric-label,
@@ -225,75 +298,95 @@ const trends = [
   color: var(--color-primary);
 }
 
-.content-grid {
+.chart-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.chart-card-wide {
+  grid-column: span 2;
 }
 
 .panel-card {
   border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--color-surface-glass);
 }
 
 .panel-title {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
+}
+
+.panel-title > div {
+  display: grid;
+  gap: 3px;
 }
 
 .panel-title strong {
   color: var(--color-text-strong);
 }
 
-.task-list,
-.trend-list {
+.content-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.task-list {
   display: grid;
   gap: 14px;
 }
 
-.task-item,
-.trend-row {
+.task-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
 }
 
-.task-item strong,
-.trend-row strong {
+.task-item strong {
   color: var(--color-text-strong);
 }
 
-.task-item p {
+.task-item p,
+.learning-tip p {
   margin: 4px 0 0;
   color: var(--color-text-muted);
   font-size: 13px;
 }
 
-.trend-row {
-  color: var(--color-text-muted);
+.learning-tip {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
 }
 
-.trend-bar {
-  position: relative;
-  flex: 1;
-  height: 10px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: #edf2f7;
+.tip-index {
+  color: var(--color-primary);
+  font-family: Georgia, serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
 }
 
-.trend-bar i {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #4f7cff, #8aa7ff);
+code {
+  padding: 2px 5px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-strong);
+  font-size: 12px;
 }
 
 @media (max-width: 960px) {
   .hero-card,
   .content-grid,
-  .metric-grid {
+  .metric-grid,
+  .chart-grid {
     grid-template-columns: 1fr;
+  }
+
+  .chart-card-wide {
+    grid-column: auto;
   }
 }
 </style>

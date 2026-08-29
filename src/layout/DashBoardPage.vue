@@ -11,27 +11,17 @@
 
       <div v-if="!isCollapsed" class="menu-caption">WORKSPACE</div>
       <el-menu
+        :key="menuStore.version"
         :default-active="route.path"
-        :default-openeds="['/system']"
+        :default-openeds="menuStore.openKeys"
         :collapse="isCollapsed"
-        background-color="#ffffff"
-        text-color="#4b5563"
-        active-text-color="#4f7cff"
+        background-color="var(--color-surface-elevated)"
+        text-color="var(--color-text)"
+        active-text-color="var(--color-primary)"
         router
         class="side-menu"
       >
-        <el-menu-item index="/dashboard">
-          <span class="menu-icon">⌂</span>
-          <template #title>工作台</template>
-        </el-menu-item>
-        <el-sub-menu index="/system">
-          <template #title>
-            <span class="menu-icon">▦</span>
-            <span>系统管理</span>
-          </template>
-          <el-menu-item index="/system/user">用户管理</el-menu-item>
-          <el-menu-item index="/system/role">角色权限</el-menu-item>
-        </el-sub-menu>
+        <SidebarMenuTree :menus="menuStore.menus" />
       </el-menu>
 
       <div class="aside-foot">
@@ -43,8 +33,13 @@
     <el-container class="content-container">
       <el-header class="layout-header">
         <div class="header-left">
-          <button class="collapse-button" type="button" aria-label="折叠菜单" @click="isCollapsed = !isCollapsed">
-            {{ isCollapsed ? '☰' : '‹' }}
+          <button
+            class="collapse-button"
+            type="button"
+            aria-label="折叠菜单"
+            @click="isCollapsed = !isCollapsed"
+          >
+            {{ isCollapsed ? '›' : '‹' }}
           </button>
           <div class="breadcrumb-wrap">
             <span class="breadcrumb-muted">Northstar</span>
@@ -54,6 +49,15 @@
         </div>
         <div class="header-right">
           <div class="header-date">{{ todayLabel }}</div>
+          <button
+            class="theme-button"
+            type="button"
+            :aria-label="isDark ? '切换浅色' : '切换深色'"
+            :title="isDark ? '切换浅色' : '切换深色'"
+            @click="toggleTheme"
+          >
+            <span aria-hidden="true">{{ isDark ? '☀' : '☾' }}</span>
+          </button>
           <el-dropdown trigger="click" @command="handleCommand">
             <button class="profile-button" type="button">
               <span class="avatar">林</span>
@@ -85,13 +89,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useMenuStore } from '@/stores/menu'
+import SidebarMenuTree from './components/SidebarMenuTree.vue'
 
+const menuStore = useMenuStore()
 const route = useRoute()
 const router = useRouter()
 const isCollapsed = ref(false)
+const isDark = ref(resolveInitialTheme() === 'dark')
 
 const currentTitle = computed(() => (route.meta.title as string) || '工作台')
 const todayLabel = new Intl.DateTimeFormat('zh-CN', {
@@ -101,6 +109,26 @@ const todayLabel = new Intl.DateTimeFormat('zh-CN', {
   weekday: 'long',
 }).format(new Date())
 
+function resolveInitialTheme() {
+  const savedTheme = localStorage.getItem('theme')
+
+  if (savedTheme === 'dark' || savedTheme === 'light') {
+    return savedTheme
+  }
+
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+function applyTheme(theme: 'dark' | 'light') {
+  document.documentElement.dataset.theme = theme
+  localStorage.setItem('theme', theme)
+  isDark.value = theme === 'dark'
+}
+
+function toggleTheme() {
+  applyTheme(isDark.value ? 'light' : 'dark')
+}
+
 function handleCommand(command: string) {
   if (command === 'logout') {
     ElMessage.success('已安全退出')
@@ -108,9 +136,13 @@ function handleCommand(command: string) {
   }
 
   if (command === 'profile') {
-    ElMessage.info('个人中心将在后续版本开放')
+    ElMessage.info('个人中心会在后续版本补上')
   }
 }
+
+onMounted(() => {
+  void menuStore.loadMenus()
+})
 </script>
 
 <style lang="scss" scoped>
@@ -126,10 +158,10 @@ function handleCommand(command: string) {
   flex-direction: column;
   overflow: hidden;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--color-surface-elevated);
   border-right: 1px solid var(--color-border);
   transition: width 0.25s ease;
-  box-shadow: 10px 0 30px rgba(17, 24, 39, 0.04);
+  box-shadow: 10px 0 30px var(--color-shadow-soft);
 }
 
 .brand-block {
@@ -147,10 +179,10 @@ function handleCommand(command: string) {
   height: 34px;
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid #dbe2ea;
+  border: 1px solid var(--color-border);
   border-radius: 10px 10px 10px 3px;
-  background: #f8fafc;
-  color: #4f7cff;
+  background: var(--color-surface-muted);
+  color: var(--color-primary);
   font-family: Georgia, serif;
   font-size: 21px;
   font-weight: 700;
@@ -189,29 +221,29 @@ function handleCommand(command: string) {
   border-right: 0;
   background: transparent;
   --el-menu-bg-color: transparent;
-  --el-menu-text-color: #4b5563;
-  --el-menu-active-color: #4f7cff;
-  --el-menu-hover-bg-color: #f4f7fb;
+  --el-menu-text-color: var(--color-text);
+  --el-menu-active-color: var(--color-primary);
+  --el-menu-hover-bg-color: var(--color-surface-muted);
 
   :deep(.el-menu-item),
   :deep(.el-sub-menu__title) {
     height: 50px;
     margin: 4px 12px;
     border-radius: 8px;
-    color: #4b5563;
+    color: var(--color-text);
     font-size: 14px;
     background-color: transparent;
   }
 
   :deep(.el-menu-item:hover),
   :deep(.el-sub-menu__title:hover) {
-    background: #f4f7fb;
-    color: #111827;
+    background: var(--color-surface-muted);
+    color: var(--color-text-strong);
   }
 
   :deep(.el-menu-item.is-active) {
-    background: #eef3ff;
-    color: #4f7cff;
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
     font-weight: 600;
   }
 
@@ -219,26 +251,18 @@ function handleCommand(command: string) {
     min-width: auto;
     padding-left: 57px !important;
     background: transparent;
-    color: #667085;
+    color: var(--color-text-muted);
     font-size: 13px;
   }
 
   :deep(.el-sub-menu .el-menu-item.is-active) {
-    background: #eef3ff;
-    color: #4f7cff;
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
   }
 
   :deep(.el-sub-menu__icon-arrow) {
-    color: #94a3b8;
+    color: var(--color-text-muted);
   }
-}
-
-.menu-icon {
-  width: 25px;
-  margin-right: 8px;
-  color: #94a3b8;
-  font-size: 18px;
-  text-align: center;
 }
 
 .aside-foot {
@@ -248,7 +272,7 @@ function handleCommand(command: string) {
   margin: auto 22px 24px;
   padding-top: 18px;
   border-top: 1px solid var(--color-border);
-  color: #94a3b8;
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 
@@ -256,8 +280,8 @@ function handleCommand(command: string) {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #5fd3a4;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
+  background: var(--color-success);
+  box-shadow: 0 0 0 4px var(--color-success-soft);
 }
 
 .content-container {
@@ -272,7 +296,7 @@ function handleCommand(command: string) {
   height: 84px;
   padding: 0 34px;
   border-bottom: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--color-surface-elevated);
   backdrop-filter: blur(10px);
 }
 
@@ -293,7 +317,7 @@ function handleCommand(command: string) {
   height: 32px;
   border: 0;
   border-radius: 8px;
-  background: #f3f4f6;
+  background: var(--color-surface-muted);
   color: var(--color-text-strong);
   cursor: pointer;
   font-size: 23px;
@@ -302,7 +326,7 @@ function handleCommand(command: string) {
 }
 
 .collapse-button:hover {
-  background: #e9edf3;
+  background: var(--color-primary-soft);
 }
 
 .breadcrumb-wrap {
@@ -313,15 +337,37 @@ function handleCommand(command: string) {
 
 .breadcrumb-muted,
 .breadcrumb-separator {
-  color: #94a3b8;
+  color: var(--color-text-muted);
 }
 
 .header-right {
   gap: 27px;
 }
 
+.theme-button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.theme-button:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
 .header-date {
-  color: #94a3b8;
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 
@@ -340,8 +386,8 @@ function handleCommand(command: string) {
   height: 36px;
   place-items: center;
   border-radius: 50%;
-  background: #eef3ff;
-  color: #4f7cff;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
   font-size: 14px;
   font-weight: 700;
 }
@@ -357,14 +403,14 @@ function handleCommand(command: string) {
 
   small {
     margin-top: 3px;
-    color: #94a3b8;
+    color: var(--color-text-muted);
     font-size: 10px;
   }
 }
 
 .chevron {
   margin-left: 3px;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   font-size: 16px;
 }
 
@@ -414,10 +460,6 @@ function handleCommand(command: string) {
   .side-menu :deep(.el-sub-menu .el-menu-item) {
     padding-left: 0 !important;
     text-align: center;
-  }
-
-  .menu-icon {
-    margin: 0;
   }
 
   .layout-header {

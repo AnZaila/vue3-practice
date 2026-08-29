@@ -27,6 +27,7 @@ coverage
 *.tsbuildinfo
 
 .eslintcache
+.pnpm-store/
 
 # Cypress
 /cypress/videos/

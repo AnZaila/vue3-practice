@@ -17,22 +17,56 @@ const routes = [
         path: 'dashboard',
         component: () => import('@/views/dashboard/DashoardPage.vue'),
         meta: {
-          title: '首页',
+          title: '工作台',
         },
       },
       {
-        path: 'system/user',
-        component: () => import('@/views/system/UserHome.vue'),
+        path: 'system',
+        component: () => import('@/views/RouteGroupView.vue'),
+        redirect: '/system/user',
         meta: {
-          title: '用户管理',
+          title: '系统管理',
         },
+        children: [
+          {
+            path: 'user',
+            component: () => import('@/views/system/UserHome.vue'),
+            meta: {
+              title: '用户管理',
+            },
+          },
+          {
+            path: 'role',
+            component: () => import('@/views/system/RoleHome.vue'),
+            meta: {
+              title: '角色权限',
+            },
+          },
+        ],
       },
       {
-        path: 'system/role',
-        component: () => import('@/views/system/RoleHome.vue'),
+        path: 'organization',
+        component: () => import('@/views/RouteGroupView.vue'),
+        redirect: '/organization/department',
         meta: {
-          title: '角色权限',
+          title: '组织管理',
         },
+        children: [
+          {
+            path: 'department',
+            component: () => import('@/views/system/department/DepartmentHome.vue'),
+            meta: {
+              title: '部门管理',
+            },
+          },
+          {
+            path: 'position',
+            component: () => import('@/views/system/position/PositionHome.vue'),
+            meta: {
+              title: '岗位管理',
+            },
+          },
+        ],
       },
     ],
   },
