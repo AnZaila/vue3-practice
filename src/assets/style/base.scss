@@ -99,6 +99,18 @@ body,
   --ink: var(--color-text-strong);
 }
 
+:root[data-theme='dark'] .el-loading-mask {
+  background-color: rgba(2, 6, 23, 0.68);
+  backdrop-filter: blur(2px);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .el-loading-mask {
+    background-color: rgba(2, 6, 23, 0.68);
+    backdrop-filter: blur(2px);
+  }
+}
+
 body {
   min-width: 320px;
   margin: 0;

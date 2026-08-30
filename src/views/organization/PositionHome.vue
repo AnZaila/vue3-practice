@@ -3,12 +3,12 @@
     <section class="hero-card">
       <div class="hero-copy">
         <span class="eyebrow">ORGANIZATION</span>
-        <h2>部门管理</h2>
-        <p>维护组织结构、负责人和成员规模，所有列表与弹窗均通过 mock 接口获取与提交。</p>
+        <h2>岗位管理</h2>
+        <p>管理岗位等级、编制和所属部门，列表筛选与表单提交都通过 mock 接口完成。</p>
       </div>
       <div class="hero-actions">
-        <el-button :loading="loading" @click="reloadDepartments">刷新列表</el-button>
-        <el-button type="primary" @click="openCreateDialog">新建部门</el-button>
+        <el-button :loading="loading" @click="reloadPositions">刷新列表</el-button>
+        <el-button type="primary" @click="openCreateDialog">新建岗位</el-button>
       </div>
     </section>
 
@@ -25,7 +25,7 @@
         <el-input
           v-model="filters.keyword"
           clearable
-          placeholder="搜索部门 / 负责人 / 联系电话"
+          placeholder="搜索岗位 / 部门 / 说明"
           class="filter-item"
           @keyup.enter="handleSearch"
         />
@@ -33,9 +33,18 @@
           <el-option label="全部状态" value="all" />
           <el-option v-for="item in statusOptions" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
-        <el-select v-model="filters.parent" class="filter-item" placeholder="全部上级部门" @change="handleSearch">
-          <el-option label="全部上级部门" value="" />
-          <el-option v-for="item in parentOptions" :key="item.value" :label="item.label" :value="item.value" />
+        <el-select v-model="filters.level" class="filter-item" placeholder="全部等级" @change="handleSearch">
+          <el-option label="全部等级" value="" />
+          <el-option v-for="item in levelOptions" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+        <el-select v-model="filters.department" class="filter-item" placeholder="全部部门" @change="handleSearch">
+          <el-option label="全部部门" value="" />
+          <el-option
+            v-for="item in departmentOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
         </el-select>
         <div class="filter-actions">
           <el-button @click="resetFilters">重置</el-button>
@@ -48,23 +57,18 @@
       <template #header>
         <div class="panel-title">
           <div>
-            <strong>部门列表</strong>
+            <strong>岗位列表</strong>
             <span>共 {{ totalRows }} 条，当前显示第 {{ currentRangeLabel }}</span>
           </div>
           <span class="panel-hint">最后刷新：{{ lastLoadedAt }}</span>
         </div>
       </template>
 
-      <el-table :data="rows" row-key="id" height="500px" v-loading="loading" empty-text="暂无匹配数据">
-        <el-table-column prop="name" label="部门名称" min-width="160" />
-        <el-table-column prop="manager" label="负责人" min-width="120" />
-        <el-table-column prop="phone" label="联系电话" min-width="150" />
-        <el-table-column prop="parent" label="上级部门" min-width="120">
-          <template #default="{ row }">
-            {{ getParentLabel(row.parent) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="memberCount" label="成员数" width="110" />
+      <el-table :data="rows" row-key="id" height="500px" stripe v-loading="loading" empty-text="暂无匹配数据">
+        <el-table-column prop="name" label="岗位名称" min-width="160" />
+        <el-table-column prop="level" label="等级" width="100" />
+        <el-table-column prop="department" label="所属部门" min-width="120" />
+        <el-table-column prop="headcount" label="编制" width="100" />
         <el-table-column prop="status" label="状态" width="120">
           <template #default="{ row }">
             <el-tag :type="getStatusTagType(row.status)" effect="light">
@@ -76,7 +80,7 @@
         <el-table-column label="操作" width="240" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="openEditDialog(row)">编辑</el-button>
-            <el-button link type="warning" @click="toggleDepartmentStatus(row)">
+            <el-button link type="warning" @click="togglePositionStatus(row)">
               {{ row.status === 'active' ? '停用' : '启用' }}
             </el-button>
             <el-button link type="danger" @click="confirmDelete(row)">删除</el-button>
@@ -99,15 +103,16 @@
       </div>
     </el-card>
 
-    <DepartmentFormDialog
+    <PositionFormDialog
       v-model:visible="dialogVisible"
       :mode="dialogMode"
-      :model-value="draftDepartment"
+      :model-value="draftPosition"
       :loading="dialogSaving"
-      :parents="parentOptions"
+      :levels="levelOptions"
+      :departments="departmentOptions"
       :statuses="statusOptions"
-      @submit="submitDepartmentForm"
-      @closed="resetDraftDepartment"
+      @submit="submitPositionForm"
+      @closed="resetDraftPosition"
     />
   </div>
 </template>
@@ -115,20 +120,20 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import DepartmentFormDialog from './components/DepartmentFormDialog.vue'
+import PositionFormDialog from './components/PositionFormDialog.vue'
 import {
-  deleteDepartmentRecord,
-  fetchDepartmentPageData,
-  saveDepartmentRecord,
-  toggleDepartmentRecordStatus,
+  deletePositionRecord,
+  fetchPositionPageData,
+  savePositionRecord,
+  togglePositionRecordStatus,
 } from '@/mock/organization'
 import type {
-  DepartmentFormModel,
-  DepartmentPageResult,
-  DepartmentRecord,
-  DepartmentQueryParams,
   OrgOption,
   OrgStatus,
+  PositionFormModel,
+  PositionPageResult,
+  PositionQueryParams,
+  PositionRecord,
 } from '@/types/organization'
 
 const loading = ref(false)
@@ -141,15 +146,17 @@ const pageSize = ref(6)
 const totalRows = ref(0)
 const lastLoadedAt = ref('--')
 
-const stats = ref<DepartmentPageResult['stats']>([])
-const rows = ref<DepartmentRecord[]>([])
-const parentOptions = ref<OrgOption[]>([])
-const statusOptions = ref<DepartmentPageResult['statuses']>([])
+const stats = ref<PositionPageResult['stats']>([])
+const rows = ref<PositionRecord[]>([])
+const departmentOptions = ref<OrgOption[]>([])
+const levelOptions = ref<OrgOption[]>([])
+const statusOptions = ref<PositionPageResult['statuses']>([])
 
-const filters = reactive<Pick<DepartmentQueryParams, 'keyword' | 'status' | 'parent'>>({
+const filters = reactive<Pick<PositionQueryParams, 'keyword' | 'status' | 'level' | 'department'>>({
   keyword: '',
   status: 'all',
-  parent: '',
+  level: '',
+  department: '',
 })
 
 const statusLabelMap: Record<OrgStatus, string> = {
@@ -166,7 +173,7 @@ const statusTagMap: Record<OrgStatus, 'success' | 'warning' | 'info'> = {
 
 const pageSummary = computed(() => {
   if (!totalRows.value) {
-    return '当前没有匹配的部门'
+    return '当前没有匹配的岗位'
   }
 
   const start = (currentPage.value - 1) * pageSize.value + 1
@@ -184,36 +191,32 @@ const currentRangeLabel = computed(() => {
   return `${start} - ${end}`
 })
 
-const draftDepartment = ref<DepartmentFormModel>(createEmptyForm())
+const draftPosition = ref<PositionFormModel>(createEmptyForm())
 
-function createEmptyForm(): DepartmentFormModel {
+function createEmptyForm(): PositionFormModel {
   return {
     name: '',
-    manager: '',
-    phone: '',
-    parent: '',
+    level: '',
+    department: '',
+    headcount: 1,
     status: 'active',
     note: '',
   }
 }
 
-function createDraftFromRow(row?: DepartmentRecord): DepartmentFormModel {
+function createDraftFromRow(row?: PositionRecord): PositionFormModel {
   if (!row) {
     return createEmptyForm()
   }
 
   return {
     name: row.name,
-    manager: row.manager,
-    phone: row.phone,
-    parent: row.parent,
+    level: row.level,
+    department: row.department,
+    headcount: row.headcount,
     status: row.status,
     note: row.note,
   }
-}
-
-function getParentLabel(value: string) {
-  return parentOptions.value.find((item) => item.value === value)?.label ?? value
 }
 
 function getStatusLabel(value: OrgStatus) {
@@ -230,13 +233,14 @@ function getCurrentTimeLabel() {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`
 }
 
-async function loadDepartments(page = currentPage.value, size = pageSize.value) {
+async function loadPositions(page = currentPage.value, size = pageSize.value) {
   loading.value = true
   try {
-    const data = await fetchDepartmentPageData({
+    const data = await fetchPositionPageData({
       keyword: filters.keyword,
       status: filters.status,
-      parent: filters.parent,
+      level: filters.level,
+      department: filters.department,
       page,
       pageSize: size,
     })
@@ -244,7 +248,8 @@ async function loadDepartments(page = currentPage.value, size = pageSize.value) 
     stats.value = data.stats
     rows.value = data.rows
     totalRows.value = data.total
-    parentOptions.value = data.parents
+    departmentOptions.value = data.departments
+    levelOptions.value = data.levels
     statusOptions.value = data.statuses
     currentPage.value = data.page
     pageSize.value = data.pageSize
@@ -256,52 +261,53 @@ async function loadDepartments(page = currentPage.value, size = pageSize.value) 
 
 function handleSearch() {
   currentPage.value = 1
-  loadDepartments(1, pageSize.value)
+  loadPositions(1, pageSize.value)
 }
 
-function reloadDepartments() {
+function reloadPositions() {
   handleSearch()
 }
 
 function resetFilters() {
   filters.keyword = ''
   filters.status = 'all'
-  filters.parent = ''
+  filters.level = ''
+  filters.department = ''
   handleSearch()
 }
 
-function resetDraftDepartment() {
-  draftDepartment.value = createEmptyForm()
+function resetDraftPosition() {
+  draftPosition.value = createEmptyForm()
   editingId.value = null
 }
 
 function openCreateDialog() {
   dialogMode.value = 'create'
   editingId.value = null
-  draftDepartment.value = createEmptyForm()
+  draftPosition.value = createEmptyForm()
   dialogVisible.value = true
 }
 
-function openEditDialog(row: DepartmentRecord) {
+function openEditDialog(row: PositionRecord) {
   dialogMode.value = 'edit'
   editingId.value = row.id
-  draftDepartment.value = createDraftFromRow(row)
+  draftPosition.value = createDraftFromRow(row)
   dialogVisible.value = true
 }
 
-async function submitDepartmentForm(form: DepartmentFormModel) {
+async function submitPositionForm(form: PositionFormModel) {
   dialogSaving.value = true
   try {
-    await saveDepartmentRecord(form, dialogMode.value, editingId.value)
-    ElMessage.success(dialogMode.value === 'create' ? '部门已创建' : '部门信息已更新')
+    await savePositionRecord(form, dialogMode.value, editingId.value)
+    ElMessage.success(dialogMode.value === 'create' ? '岗位已创建' : '岗位信息已更新')
     dialogVisible.value = false
-    await loadDepartments(dialogMode.value === 'create' ? 1 : currentPage.value, pageSize.value)
+    await loadPositions(dialogMode.value === 'create' ? 1 : currentPage.value, pageSize.value)
   } finally {
     dialogSaving.value = false
   }
 }
 
-async function toggleDepartmentStatus(row: DepartmentRecord) {
+async function togglePositionStatus(row: PositionRecord) {
   const nextStatus: OrgStatus = row.status === 'active' ? 'frozen' : 'active'
   const nextLabel = nextStatus === 'active' ? '启用' : '停用'
 
@@ -315,14 +321,14 @@ async function toggleDepartmentStatus(row: DepartmentRecord) {
     return
   }
 
-  await toggleDepartmentRecordStatus(row.id, nextStatus)
+  await togglePositionRecordStatus(row.id, nextStatus)
   ElMessage.success(`已${nextLabel}`)
-  await loadDepartments(currentPage.value, pageSize.value)
+  await loadPositions(currentPage.value, pageSize.value)
 }
 
-async function confirmDelete(row: DepartmentRecord) {
+async function confirmDelete(row: PositionRecord) {
   try {
-    await ElMessageBox.confirm(`删除「${row.name}」后不可恢复，继续吗？`, '删除部门', {
+    await ElMessageBox.confirm(`删除「${row.name}」后不可恢复，继续吗？`, '删除岗位', {
       type: 'warning',
       confirmButtonText: '删除',
       cancelButtonText: '取消',
@@ -331,17 +337,17 @@ async function confirmDelete(row: DepartmentRecord) {
     return
   }
 
-  await deleteDepartmentRecord(row.id)
-  ElMessage.success('部门已删除')
-  await loadDepartments(currentPage.value, pageSize.value)
+  await deletePositionRecord(row.id)
+  ElMessage.success('岗位已删除')
+  await loadPositions(currentPage.value, pageSize.value)
 }
 
 function handlePageChange(page: number) {
-  loadDepartments(page, pageSize.value)
+  loadPositions(page, pageSize.value)
 }
 
 function handlePageSizeChange(size: number) {
-  loadDepartments(1, size)
+  loadPositions(1, size)
 }
 
 onMounted(() => {
@@ -441,7 +447,7 @@ onMounted(() => {
 
 .filter-grid {
   display: grid;
-  grid-template-columns: minmax(220px, 1.4fr) repeat(2, minmax(0, 1fr)) auto;
+  grid-template-columns: minmax(220px, 1.4fr) repeat(3, minmax(0, 1fr)) auto;
   gap: 12px;
   align-items: center;
 }

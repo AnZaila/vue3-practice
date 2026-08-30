@@ -424,13 +424,13 @@ onMounted(() => {
 
 .page-enter-active,
 .page-leave-active {
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
 .page-enter-from,
 .page-leave-to {
   opacity: 0;
-  transform: translateY(5px);
+  transform: translateY(10px);
 }
 
 @media (max-width: 720px) {

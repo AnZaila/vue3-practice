@@ -1,23 +1,30 @@
 <template>
   <div class="login-page">
-    <div class="login-copy">
-      <span class="eyebrow">WELCOME BACK</span>
-      <h1>Northstar 管理平台</h1>
-      <p>专注于权限、用户和运营数据的统一管理。</p>
-    </div>
+    <div class="login-container">
+      <div class="login-copy">
+        <span class="eyebrow">WELCOME BACK</span>
+        <h1>Northstar 管理平台</h1>
+        <p>专注于权限、用户和运营数据的统一管理</p>
+      </div>
 
-    <el-card class="login-card" shadow="never">
-      <h2>账号登录</h2>
-      <el-form :model="form" label-position="top">
-        <el-form-item label="用户名">
-          <el-input v-model="form.username" placeholder="admin" />
-        </el-form-item>
-        <el-form-item label="密码">
-          <el-input v-model="form.password" type="password" show-password placeholder="请输入密码" />
-        </el-form-item>
-        <el-button type="primary" class="submit-btn" @click="handleLogin">进入系统</el-button>
-      </el-form>
-    </el-card>
+      <el-card class="login-card" shadow="never">
+        <h2>账号登录</h2>
+        <el-form :model="form" label-position="top">
+          <el-form-item label="用户名">
+            <el-input v-model="form.username" placeholder="admin" />
+          </el-form-item>
+          <el-form-item label="密码">
+            <el-input
+              v-model="form.password"
+              type="password"
+              show-password
+              placeholder="请输入密码"
+            />
+          </el-form-item>
+          <el-button type="primary" class="submit-btn" @click="handleLogin">进入系统</el-button>
+        </el-form>
+      </el-card>
+    </div>
   </div>
 </template>
 
@@ -41,15 +48,18 @@ function handleLogin() {
 
 <style scoped lang="scss">
 .login-page {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(79, 124, 255, 0.18), transparent 24%),
+    linear-gradient(135deg, var(--color-bg), var(--color-surface-muted));
+}
+.login-container {
+  max-width: 1080px;
   min-height: 100vh;
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
   gap: 32px;
   align-items: center;
-  padding: 48px;
-  background:
-    radial-gradient(circle at 12% 18%, rgba(79, 124, 255, 0.18), transparent 24%),
-    linear-gradient(135deg, var(--color-bg), var(--color-surface-muted));
+  margin: 0 auto;
 }
 
 .login-copy {
@@ -59,11 +69,10 @@ function handleLogin() {
   h1 {
     margin: 0;
     font-size: clamp(42px, 7vw, 82px);
-    line-height: 0.96;
+    line-height: 1.1;
   }
 
   p {
-    max-width: 32ch;
     margin: 18px 0 0;
     color: var(--color-text-muted);
     font-size: 18px;
@@ -97,7 +106,7 @@ function handleLogin() {
 }
 
 @media (max-width: 900px) {
-  .login-page {
+  .login-container {
     grid-template-columns: 1fr;
     padding: 24px;
   }

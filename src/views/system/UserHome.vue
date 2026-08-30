@@ -66,6 +66,7 @@
 
       <el-table
         :data="users"
+        stripe
         row-key="id"
         height="500px"
         v-loading="loading"

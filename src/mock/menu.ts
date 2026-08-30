@@ -45,6 +45,18 @@ const menuResponse: MenuResponse = {
         },
       ],
     },
+    {
+      label: '我的学习',
+      path: '/learning',
+      permission: 'learning:view',
+      children: [
+        {
+          label: 'Vue3Learning',
+          path: '/learning/Vue3Learning',
+          permission: 'learning:ref&Vue3Learning:view',
+        },
+      ],
+    },
   ],
   permissions: [
     'dashboard:view',
@@ -54,6 +66,8 @@ const menuResponse: MenuResponse = {
     'organization:view',
     'organization:department:view',
     'organization:position:view',
+    'learning:view',
+    'learning:Vue3Learning:view',
   ],
 }
 
