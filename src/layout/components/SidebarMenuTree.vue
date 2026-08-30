@@ -9,7 +9,7 @@
         <span class="menu-icon">{{ item.icon ?? '▣' }}</span>
         <span>{{ item.label }}</span>
       </template>
-      <SidebarMenuTree :menus="item.children" />
+      <SidebarMenuTree :menus="item.children ?? []" />
     </el-sub-menu>
   </template>
 </template>

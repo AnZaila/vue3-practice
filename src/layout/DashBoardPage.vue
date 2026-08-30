@@ -13,7 +13,7 @@
       <el-menu
         :key="menuStore.version"
         :default-active="route.path"
-        :default-openeds="menuStore.openKeys"
+        :default-openeds="[]"
         :collapse="isCollapsed"
         background-color="var(--color-surface-elevated)"
         text-color="var(--color-text)"

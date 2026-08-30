@@ -1,6 +1,7 @@
 <template>
   <div class="learning-page">
     <h1>{{ pageTitle }}</h1>
+    <h2 class="mouse-xy">e.clientX: {{ x }} e.clientY: {{ y }}</h2>
     <el-button type="primary" @click="alertTitle">check</el-button>
     <h2>-- ref and reactive</h2>
     <div class="form-area-box">
@@ -73,6 +74,8 @@
     <el-button type="primary" plain @click="changeMyChild1Name">
       click to change myChild1 name
     </el-button>
+    <el-divider/>
+
   </div>
 </template>
 <script setup lang="ts">
@@ -80,9 +83,13 @@ import { ref, reactive, toRefs, toRef, computed, watch, watchEffect, useTemplate
 // pinia 全局状态
 import { useMenuStore } from '@/stores/menu'
 import MyChild1 from './components/MyChild1.vue'
+// Hooks
+import { useMouse } from '@/Hooks/useMouse'
 
 // 1、ref
 const pageTitle = ref('This is a Vue3 learning page.')
+// hooks
+const { x, y } = useMouse()
 // 使用ref的值，后面需要写一个value
 const alertTitle = () => {
   alert(pageTitle.value)
@@ -233,7 +240,7 @@ const changeMyChild1Name = () => {
   myChild1.value?.changeMyName()
 }
 
-// 8、props 
+// 8、props
 </script>
 
 <style scoped lang="scss">
@@ -241,6 +248,14 @@ const changeMyChild1Name = () => {
   background: var(--el-bg-color);
   padding: 24px;
   border-radius: 8px;
+}
+.mouse-xy {
+  position: sticky;
+  top: -40px;
+  background-color: var(--el-bg-color);
+  margin: 0;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--el-border-color);
 }
 .form-area-box {
   max-width: 560px;

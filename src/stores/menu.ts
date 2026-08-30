@@ -4,20 +4,31 @@ import { fetchMenuTree } from '@/mock/menu'
 import type { MenuNode } from '@/types/menu'
 
 function collectOpenKeys(nodes: MenuNode[]): string[] {
-  return nodes.flatMap((item) => {
-    const keys = item.children?.length ? [item.path] : []
-    return item.children?.length ? keys.concat(collectOpenKeys(item.children)) : keys
-  })
+  const keys: string[] = []
+
+  for (const item of nodes) {
+    if (item.children?.length) {
+      keys.push(item.path)
+      keys.push(...collectOpenKeys(item.children))
+    }
+  }
+
+  return keys
 }
 
 function collectLeafPaths(nodes: MenuNode[]): string[] {
-  return nodes.flatMap((item) => {
+  const paths: string[] = []
+
+  for (const item of nodes) {
     if (item.children?.length) {
-      return collectLeafPaths(item.children)
+      paths.push(...collectLeafPaths(item.children))
+      continue
     }
 
-    return [item.path]
-  })
+    paths.push(item.path)
+  }
+
+  return paths
 }
 
 export const useMenuStore = defineStore('menu', () => {
