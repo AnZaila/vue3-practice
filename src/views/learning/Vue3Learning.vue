@@ -20,6 +20,7 @@
       <el-button type="primary" plain>Login</el-button>
     </div>
     <hr />
+    <el-divider />
     <h2>-- toRefs and toRef</h2>
     <div class="common-container">
       <p>This is a toRefs example.</p>
@@ -67,22 +68,33 @@
     <el-button type="primary" plain @click="alerRefp">alert refP's content</el-button>
     <span ref="refSpan">我是span</span>
     <el-button type="primary" plain @click="alerRefSpan">alert refSpan's content</el-button>
-    <MyChild1 ref="myChild1" />
+    <MyChild1 ref="myChild1" :menu-list="userMenuList" />
     <el-button type="primary" plain @click="alertMyChild1">
       click to alert myChild1 definExpose atrribute
     </el-button>
     <el-button type="primary" plain @click="changeMyChild1Name">
       click to change myChild1 name
     </el-button>
+    <el-divider />
+    <MyChild2 @send-data="receiveData" />
+    <el-divider />
+    <MyChild3 ref="child3Ref" />
+    <el-button type="primary" plain @click="changeChild3Name"
+      >click me to excute child3's method.</el-button
+    >
+    <el-divider />
+    <MyChild4 v-model:color="color" v-model:height="height" />
     <el-divider/>
-
   </div>
 </template>
 <script setup lang="ts">
-import { ref, reactive, toRefs, toRef, computed, watch, watchEffect, useTemplateRef } from 'vue'
+import { ref, reactive, toRefs, toRef, computed, watch, watchEffect, useTemplateRef, provide } from 'vue'
 // pinia 全局状态
 import { useMenuStore } from '@/stores/menu'
 import MyChild1 from './components/MyChild1.vue'
+import MyChild2 from './components/MyChild2.vue'
+import MyChild3 from './components/MyChild3.vue'
+import MyChild4 from './components/MyChild4.vue'
 // Hooks
 import { useMouse } from '@/Hooks/useMouse'
 
@@ -94,8 +106,13 @@ const { x, y } = useMouse()
 const alertTitle = () => {
   alert(pageTitle.value)
 }
+interface userInfo {
+  username: ''
+  password: ''
+  age: number | null
+}
 // 2、reactive
-const userInfo = reactive({
+const userInfo: userInfo = reactive({
   username: '',
   password: '',
   age: null,
@@ -241,6 +258,36 @@ const changeMyChild1Name = () => {
 }
 
 // 8、props
+// 情况一：父组件传递数据给子组件，子组件通过props接收
+const userMenuList = useMenuStore().permissions.toString().split(',')
+// 情况二：父组件传递数据给子组件，子组件通过props接收，并通过emit向父组件传递数据
+const receiveData = (data: string, age: number) => {
+  alert(`父组件接收到子组件传递过来的数据了: ${data}, age: ${age}`)
+}
+// 情况三： expose / defineExpose（父获取子组件实例/数据方法）
+const child3Ref = ref<InstanceType<typeof MyChild3> | null>(null)
+const changeChild3Name = () => {
+  child3Ref.value?.changeMyName()
+}
+// 情况四：v-model 父子双向绑定 Vue3 支持单个/多个 v-model，本质是 props + emit
+const color = ref('red')
+const height = ref(100)
+// 情况五： provide、project（父组件提供数据，子组件注入数据）
+// 提供数据
+// 直接 provide 普通值，不会响应式更新
+provide('userInfo', userInfo)
+// 使用ref、reactive、computed提供响应式数据
+const themeColor = ref('blue')
+provide('themeColor', themeColor) // 祖孙组件通信
+// 提供方法
+provide('changeThemeColor', (newColor: string) => {
+  themeColor.value = newColor
+})
+// 情况六：事件总线（mitt 替代 Vue2 EventBus）
+// 看MyChild4 和 MyChild3
+
+// 情况七：$atrrs 透传 $attrs 包含了父组件传递给子组件的所有属性（除了子组件用 props 声明接收的）
+// 情况八：$parent / $children 组件实例访问 耦合度极高、层级变动会失效、TS 兼容性差，不推荐生产使用，仅适合临时调试。
 </script>
 
 <style scoped lang="scss">
