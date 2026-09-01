@@ -1,5 +1,6 @@
 import './assets/style/main.scss'
 import 'element-plus/dist/index.css'
+// 引入自定义覆盖样式（必须在 Element Plus 样式之后）
 import './assets/style/element-plus.scss'
 
 import { createApp } from 'vue'

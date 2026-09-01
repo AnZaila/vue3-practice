@@ -24,6 +24,12 @@
   --el-table-row-hover-bg-color: var(--color-surface-muted);
 }
 
+// 修改固定列背景色
+.el-table .el-table-fixed-column--left,
+.el-table .el-table-fixed-column--right {
+  background-color: var(--el-bg-color) !important;
+}
+
 .el-button--primary {
   box-shadow: 0 10px 24px rgba(79, 124, 255, 0.16);
 }
