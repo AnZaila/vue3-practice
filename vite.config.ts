@@ -10,6 +10,7 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/vue3-practice/', // 用于 gh-pages 分支作为存放dist文件来访问的配置
   plugins: [
     vue(),
     // vueDevTools(), // Vue开发工具
