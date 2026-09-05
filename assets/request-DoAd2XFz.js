@@ -1,0 +1,1 @@
+function e(e){return JSON.parse(JSON.stringify(e))}function t(t,n=800){return new Promise(r=>{window.setTimeout(()=>r(e(t)),n)})}export{t};
