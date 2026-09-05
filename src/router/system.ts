@@ -17,6 +17,9 @@ export default {
       path: 'permission',
       component: () => import('@/views/RouteGroupView.vue'),
       redirect: '/system/permission/role',
+      meta: {
+        title: '权限管理',
+      },
       children: [
         {
           path: 'role',

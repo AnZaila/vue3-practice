@@ -84,20 +84,53 @@
     >
     <el-divider />
     <MyChild4 v-model:color="color" v-model:height="height" />
-    <el-divider/>
+    <el-divider />
+    <span>dialogMsg: {{ dialogMsg }}</span>
+    <el-button type="primary" plain @click="openShowInfoDialog">展示</el-button>
+    <el-button type="primary" plain @click="openCreateInfoDialog">新增</el-button>
+    <InfoDialog
+      v-model:visible="infoDialogVisible"
+      :mode="infoDialogMode"
+      v-model:msg="dialogMsg"
+      :user="userInfo"
+      @submit="handleCreateInfo"
+      @change:msg="changeMsg"
+    />
+    <el-divider />
+    <el-button type="primary" @click="openEdit">打开编辑弹窗</el-button>
+    <UserEditDialog
+      v-model:visible="dialogVisible"
+      :edit-user="editData"
+      @submit="onSubmit"
+      @closed="onClosed"
+    />
   </div>
 </template>
 <script setup lang="ts">
-import { ref, reactive, toRefs, toRef, computed, watch, watchEffect, useTemplateRef, provide } from 'vue'
+import {
+  ref,
+  reactive,
+  toRefs,
+  toRef,
+  computed,
+  watch,
+  watchEffect,
+  useTemplateRef,
+  provide,
+} from 'vue'
 // pinia 全局状态
 import { useMenuStore } from '@/stores/menu'
 import MyChild1 from './components/MyChild1.vue'
 import MyChild2 from './components/MyChild2.vue'
 import MyChild3 from './components/MyChild3.vue'
 import MyChild4 from './components/MyChild4.vue'
+import InfoDialog from './components/InfoDialog.vue'
+import UserEditDialog from './components/UserEditDialog.vue'
 // Hooks
 import { useMouse } from '@/Hooks/useMouse'
-
+import { ElMessage } from 'element-plus'
+import type { InfoDialogMode, UserInfo } from '@/types/learning'
+import type { User } from '@/types/learning.ts'
 // 1、ref
 const pageTitle = ref('This is a Vue3 learning page.')
 // hooks
@@ -106,15 +139,10 @@ const { x, y } = useMouse()
 const alertTitle = () => {
   alert(pageTitle.value)
 }
-interface userInfo {
-  username: ''
-  password: ''
-  age: number | null
-}
 // 2、reactive
-const userInfo: userInfo = reactive({
-  username: '',
-  password: '',
+const userInfo = reactive<UserInfo>({
+  username: 'Anzai',
+  password: '123456',
   age: null,
 })
 
@@ -288,6 +316,47 @@ provide('changeThemeColor', (newColor: string) => {
 
 // 情况七：$atrrs 透传 $attrs 包含了父组件传递给子组件的所有属性（除了子组件用 props 声明接收的）
 // 情况八：$parent / $children 组件实例访问 耦合度极高、层级变动会失效、TS 兼容性差，不推荐生产使用，仅适合临时调试。
+
+const infoDialogMode = ref<InfoDialogMode>('create')
+const infoDialogVisible = ref<true | false>(false)
+const dialogMsg = ref<string>('父子组件共享信息')
+
+const openCreateInfoDialog = () => {
+  infoDialogMode.value = 'create'
+  infoDialogVisible.value = true
+}
+
+const openShowInfoDialog = () => {
+  infoDialogMode.value = 'show'
+  infoDialogVisible.value = true
+}
+
+const handleCreateInfo = (form: UserInfo) => {
+  Object.assign(userInfo, form)
+  infoDialogVisible.value = false
+  ElMessage.success('新增信息已写入当前 userInfo')
+}
+
+const changeMsg = (value: string) => {
+  dialogMsg.value = value
+}
+
+// 练习
+const dialogVisible = ref(false)
+const editData = ref<User | null>(null)
+
+function openEdit() {
+  editData.value = { id: 1, name: '张三', age: 22 }
+  dialogVisible.value = true
+}
+
+function onSubmit(user: User) {
+  console.log('父拿到提交的数据', user)
+}
+
+function onClosed() {
+  console.log('弹窗完全关闭')
+}
 </script>
 
 <style scoped lang="scss">
