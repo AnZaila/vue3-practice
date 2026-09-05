@@ -21,6 +21,9 @@ export default {
         {
           path: 'role',
           component: () => import('@/views/system/RoleHome.vue'),
+          meta: {
+            title: '角色权限',
+          },
         },
       ],
     },
