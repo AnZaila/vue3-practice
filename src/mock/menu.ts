@@ -6,41 +6,52 @@ const menuResponse: MenuResponse = {
     {
       label: '工作台',
       path: '/dashboard',
-      icon: '◫',
+      icon: 'House',
       permission: 'dashboard:view',
     },
     {
       label: '系统管理',
       path: '/system',
-      icon: '◪',
+      icon: 'Setting',
       permission: 'system:view',
       children: [
         {
           label: '用户管理',
           path: '/system/user',
+          icon: 'User',
           permission: 'system:user:view',
         },
         {
-          label: '角色权限',
-          path: '/system/role',
-          permission: 'system:role:view',
+          label: '权限管理',
+          path: '/system/permission',
+          icon: 'User',
+          children: [
+            {
+              label: '角色权限',
+              path: '/system/permission/role',
+              icon: 'User',
+              permission: 'system:role:view',
+            },
+          ],
         },
       ],
     },
     {
       label: '组织管理',
       path: '/organization',
-      icon: '◫',
+      icon: 'Connection',
       permission: 'organization:view',
       children: [
         {
           label: '部门管理',
           path: '/organization/department',
+          icon: 'Connection',
           permission: 'organization:department:view',
         },
         {
           label: '岗位管理',
           path: '/organization/position',
+          icon: 'Connection',
           permission: 'organization:position:view',
         },
       ],

@@ -18,7 +18,7 @@ const routes = [
     children: [
       {
         path: 'dashboard',
-        component: () => import('@/views/dashboard/DashoardPage.vue'),
+        component: () => import('@/views/dashboard/DashBoardPage.vue'),
         meta: {
           title: '工作台',
         },

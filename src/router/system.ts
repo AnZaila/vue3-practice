@@ -14,11 +14,15 @@ export default {
       },
     },
     {
-      path: 'role',
-      component: () => import('@/views/system/RoleHome.vue'),
-      meta: {
-        title: '角色权限',
-      },
+      path: 'permission',
+      component: () => import('@/views/RouteGroupView.vue'),
+      redirect: '/system/permission/role',
+      children: [
+        {
+          path: 'role',
+          component: () => import('@/views/system/RoleHome.vue'),
+        },
+      ],
     },
   ],
 }

@@ -1,12 +1,16 @@
 <template>
   <template v-for="item in menus" :key="item.path">
     <el-menu-item v-if="!item.children?.length" :index="item.path">
-      <span class="menu-icon">{{ item.icon ?? '•' }}</span>
+      <el-icon class="menu-icon">
+        <component :is="resolveMenuIcon(item.icon)" />
+      </el-icon>
       <template #title>{{ item.label }}</template>
     </el-menu-item>
     <el-sub-menu v-else :index="item.path">
       <template #title>
-        <span class="menu-icon">{{ item.icon ?? '▣' }}</span>
+        <el-icon class="menu-icon">
+          <component :is="resolveMenuIcon(item.icon)" />
+        </el-icon>
         <span>{{ item.label }}</span>
       </template>
       <SidebarMenuTree :menus="item.children ?? []" />
@@ -15,6 +19,7 @@
 </template>
 
 <script setup lang="ts">
+import { resolveMenuIcon } from '@/constants/menuIcons'
 import type { MenuNode } from '@/types/menu'
 
 defineOptions({
