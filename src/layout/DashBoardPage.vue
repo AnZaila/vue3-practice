@@ -26,7 +26,7 @@
 
       <div class="aside-foot">
         <div class="status-dot"></div>
-        <span v-if="!isCollapsed">系统运行正常</span>
+        <span v-if="!isCollapsed" style="min-width: 73px">系统运行正常</span>
       </div>
     </el-aside>
 
@@ -40,9 +40,9 @@
       />
       <el-main class="layout-main">
         <router-view v-slot="{ Component }">
-          <transition name="page" mode="out-in">
+          <Transition name="page" mode="out-in">
             <component :is="Component" />
-          </transition>
+          </Transition>
         </router-view>
       </el-main>
     </el-container>
@@ -189,7 +189,7 @@ onMounted(() => {
   :deep(.el-menu-item),
   :deep(.el-sub-menu__title) {
     height: 50px;
-    margin: 4px 12px;
+    margin: 0 12px;
     border-radius: 8px;
     color: var(--color-text);
     font-size: 14px;
@@ -214,6 +214,9 @@ onMounted(() => {
     background: transparent;
     color: var(--color-text-muted);
     font-size: 13px;
+    &:hover {
+      background: var(--color-surface-muted);
+    }
   }
 
   :deep(.el-sub-menu .el-menu-item.is-active) {
@@ -229,6 +232,7 @@ onMounted(() => {
 .aside-foot {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 9px;
   margin: auto 22px 24px;
   padding-top: 18px;

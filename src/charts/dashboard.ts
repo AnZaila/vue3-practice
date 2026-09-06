@@ -71,7 +71,7 @@ export function createSourceOption(
         center: ['50%', '43%'],
         avoidLabelOverlap: true,
         itemStyle: { borderColor: theme.surface, borderWidth: 3 },
-        label: { show: false },
+        label: { show: true },
         emphasis: {
           label: { show: true, fontSize: 16, fontWeight: 600, color: theme.strong },
         },

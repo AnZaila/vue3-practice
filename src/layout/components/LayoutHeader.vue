@@ -7,14 +7,17 @@
         aria-label="折叠菜单"
         @click="emit('update:collapsed', !collapsed)"
       >
-        {{ collapsed ? '›' : '‹' }}
+        <el-icon v-if="collapsed"><ArrowRight /></el-icon>
+        <el-icon v-else><ArrowLeft /></el-icon>
       </button>
       <nav class="breadcrumb-wrap" aria-label="当前位置">
         <RouterLink class="breadcrumb-muted" :to="{ path: '/' }">Northstar</RouterLink>
         <template v-for="item in breadcrumbs" :key="item.path || item.title">
           <span class="breadcrumb-separator">/</span>
           <RouterLink v-if="item.isCurrent" :to="{ path: item.path }">{{ item.title }}</RouterLink>
-          <RouterLink v-else class="breadcrumb-muted" :to="{ path: item.path }">{{ item.title }}</RouterLink>
+          <RouterLink v-else class="breadcrumb-muted" :to="{ path: item.path }">{{
+            item.title
+          }}</RouterLink>
         </template>
       </nav>
     </div>
@@ -27,7 +30,10 @@
         :title="isDark ? '切换浅色' : '切换深色'"
         @click="emit('toggle-theme')"
       >
-        <span aria-hidden="true">{{ isDark ? '☀' : '☾' }}</span>
+        <span aria-hidden="true">
+          <el-icon v-if="isDark"><Sunny /></el-icon>
+          <el-icon v-else><Moon /></el-icon>
+        </span>
       </button>
       <el-dropdown trigger="click" @command="handleCommand">
         <button class="profile-button" type="button">
@@ -36,7 +42,9 @@
             <strong>林知远</strong>
             <small>超级管理员</small>
           </span>
-          <span class="chevron">⌄</span>
+          <span class="chevron">
+          <el-icon><ArrowDown /></el-icon>
+          </span>
         </button>
         <template #dropdown>
           <el-dropdown-menu>
@@ -52,6 +60,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
+import { ArrowLeft, ArrowRight, Sunny, Moon, ArrowDown} from '@element-plus/icons-vue'
 
 interface BreadcrumbItem {
   title: string
@@ -120,9 +129,9 @@ function handleCommand(command: string | number | object) {
   border: 0;
   border-radius: 8px;
   background: var(--color-surface-muted);
-  color: var(--color-text-strong);
+  color: var(--color-primary);
   cursor: pointer;
-  font-size: 23px;
+  font-size: 16px;
   line-height: 1;
   transition: background 0.2s ease;
 }
