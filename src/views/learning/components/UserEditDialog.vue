@@ -14,6 +14,9 @@
       <el-form-item label="年龄" prop="age">
         <el-input-number v-model="formModel.age"></el-input-number>
       </el-form-item>
+      <el-form-item label="信息">
+        <el-input v-model="myMsg"></el-input>
+      </el-form-item>
     </el-form>
     <template #footer>
       <el-button type="primary" @click="submitForm">提交</el-button>
@@ -37,6 +40,7 @@ const props = withDefaults(
   defineProps<{
     editUser: User | null
     visible: boolean
+    message: string
   }>(),
   {},
 )
@@ -45,12 +49,28 @@ const emit = defineEmits<{
   'update:visible': [value: boolean]
   submit: [value: User]
   closed: []
+  'update:message': [value: string]
 }>()
 
 const formModel = reactive<User>({
   id: undefined,
   name: '',
-  age: 0
+  age: 0,
+})
+
+const myMsg = ref('')
+
+watch(
+  () => props.message,
+  (newVal) => {
+    myMsg.value = newVal
+  },
+  { immediate: true }
+)
+
+//监听本地myMsg变化，再向外emit
+watch(myMsg,(newVal)=>{
+  emit('update:message', newVal)
 })
 
 watch(
@@ -64,7 +84,7 @@ watch(
       formModel.age = 0
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 const submitForm = async () => {

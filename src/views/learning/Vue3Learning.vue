@@ -97,13 +97,20 @@
       @change:msg="changeMsg"
     />
     <el-divider />
+    <p>usera.name: {{ editData?.name }}</p>
+    <p>usera.age: {{ editData?.age }}</p>
+    <p>showMsg: {{ showMsg }}</p>
     <el-button type="primary" @click="openEdit">打开编辑弹窗</el-button>
     <UserEditDialog
       v-model:visible="dialogVisible"
       :edit-user="editData"
+      :message="showMsg"
+      @update:message="changeShowMsg"
       @submit="onSubmit"
       @closed="onClosed"
     />
+    <el-divider></el-divider>
+    <UserDescription title="用户信息" :userData="showUserData" />
   </div>
 </template>
 <script setup lang="ts">
@@ -126,11 +133,13 @@ import MyChild3 from './components/MyChild3.vue'
 import MyChild4 from './components/MyChild4.vue'
 import InfoDialog from './components/InfoDialog.vue'
 import UserEditDialog from './components/UserEditDialog.vue'
+import UserDescription from './components/UserDescription.vue'
 // Hooks
 import { useMouse } from '@/Hooks/useMouse'
 import { ElMessage } from 'element-plus'
-import type { InfoDialogMode, UserInfo } from '@/types/learning'
+import { userDataShowType, type InfoDialogMode, type UserInfo } from '@/types/learning'
 import type { User } from '@/types/learning.ts'
+import type { DepartmentRecord } from '@/types/organization.ts'
 // 1、ref
 const pageTitle = ref('This is a Vue3 learning page.')
 // hooks
@@ -344,19 +353,71 @@ const changeMsg = (value: string) => {
 // 练习
 const dialogVisible = ref(false)
 const editData = ref<User | null>(null)
-
+const showMsg = ref<string>('你好')
 function openEdit() {
-  editData.value = { id: 1, name: '张三', age: 22 }
+  editData.value = editData.value ? editData.value : { id: 1, name: '张三', age: 22 }
   dialogVisible.value = true
 }
 
 function onSubmit(user: User) {
   console.log('父拿到提交的数据', user)
+  editData.value = user
+}
+
+const changeShowMsg = (value: string) => {
+  showMsg.value = value
+  console.log('这里还要做额外操作, 所以我用 :message + @update:message 的方式')
+  console.log('如果只是单纯改变值，不做任何操作，那么就直接用 v-model:message 即可')
 }
 
 function onClosed() {
   console.log('弹窗完全关闭')
 }
+
+// 假设我拿到的数据为
+const userData: DepartmentRecord = {
+  id: 2001,
+  name: '产品部',
+  manager: '林知远',
+  phone: '138-0000-2001',
+  memberCount: 18,
+  parent: 'headquarters',
+  status: 'active',
+  createdAt: '2025-10-18 09:10',
+  note: '',
+}
+
+// const showUserData = ():Record<string, string>[] => {
+//   return JSON.stringify(userData)
+//     .split(',')
+//     .reduce((acc, item) => {
+//       const keyValue = item.split(':')
+//       const key = keyValue[0]
+//       const value = keyValue[1]
+//       const final: Record<string, string> = {
+//         label: key,
+//         value,
+//       }
+//       acc.push(final)
+//       return acc
+//     }, [])
+// }
+
+const showUserData = computed(() => {
+  const keys = Object.keys(userData)
+  const showData: Record<string, string | number>[] = []
+  for (const item of userDataShowType) {
+    const fieldKey = item.value as keyof DepartmentRecord
+    if (keys.includes(item.value as string)) {
+      showData.push({
+        label: item.label as string,
+        // `??` 空值合并运算符：**只有 `null`、`undefined` 的时候才返回后面的`'-'`**
+        value: userData[fieldKey] ?? '-',
+      })
+    }
+  }
+  return showData
+})
 </script>
 
 <style scoped lang="scss">
