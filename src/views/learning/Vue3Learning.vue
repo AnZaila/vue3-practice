@@ -111,6 +111,9 @@
     />
     <el-divider></el-divider>
     <UserDescription title="用户信息" :userData="showUserData" />
+    <el-divider></el-divider>
+    <DialogTest1 v-model="DialogTest1Visible" :data="testData1" />
+    <el-button type="primary" plain @click="checkDialogTest1">查看</el-button>
   </div>
 </template>
 <script setup lang="ts">
@@ -140,6 +143,7 @@ import { ElMessage } from 'element-plus'
 import { userDataShowType, type InfoDialogMode, type UserInfo } from '@/types/learning'
 import type { User } from '@/types/learning.ts'
 import type { DepartmentRecord } from '@/types/organization.ts'
+import DialogTest1 from './components/DialogTest1.vue'
 // 1、ref
 const pageTitle = ref('This is a Vue3 learning page.')
 // hooks
@@ -418,6 +422,31 @@ const showUserData = computed(() => {
   }
   return showData
 })
+
+// DialogTest1Visible
+const DialogTest1Visible = ref<true | false>(false)
+const testData1 = ref<Record<string, string>[]>([
+  {
+    label: '姓名',
+    value: 'Anzai',
+  },
+  {
+    label: '年龄',
+    value: '18',
+  },
+  {
+    label: '身高',
+    value: '180',
+  },
+  {
+    label: '体重',
+    value: '130斤',
+  },
+])
+
+const checkDialogTest1 = () => {
+  DialogTest1Visible.value = true
+}
 </script>
 
 <style scoped lang="scss">

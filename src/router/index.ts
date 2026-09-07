@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import systemRoutes from './system'
 import organization from './organization'
 import learning from './learning'
+import { finishPageProgress, startPageProgress } from '@/utils/pageProgress'
 
 const routes = [
   {
@@ -36,6 +37,18 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
+})
+
+router.beforeEach(() => {
+  startPageProgress()
+})
+
+router.afterEach(() => {
+  finishPageProgress()
+})
+
+router.onError(() => {
+  finishPageProgress()
 })
 
 export default router
