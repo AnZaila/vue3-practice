@@ -63,8 +63,8 @@ const menuResponse: MenuResponse = {
       children: [
         {
           label: 'Vue3Learning',
-          path: '/learning/Vue3Learning',
-          permission: 'learning:ref&Vue3Learning:view',
+          path: '/learning/vue3-learning',
+          permission: 'learning:vue3-learning:view',
         },
       ],
     },
@@ -78,7 +78,7 @@ const menuResponse: MenuResponse = {
     'organization:department:view',
     'organization:position:view',
     'learning:view',
-    'learning:Vue3Learning:view',
+    'learning:vue3-learning:view',
   ],
 }
 

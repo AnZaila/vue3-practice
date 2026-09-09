@@ -1,0 +1,52 @@
+<template>
+  <div class="not-found-page">
+    <p class="eyebrow">PAGE NOT FOUND</p>
+    <h1>404</h1>
+    <p class="description">你访问的页面不存在，或者已经被移动。</p>
+    <el-button type="primary" @click="goHome">返回工作台</el-button>
+  </div>
+</template>
+<script setup lang="ts">
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+function goHome() {
+  router.push('/dashboard')
+}
+</script>
+
+
+<style scoped>
+.not-found-page {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+  background: var(--color-bg);
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+h1 {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: 72px;
+  line-height: 1;
+}
+
+.description {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+</style>

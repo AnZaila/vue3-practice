@@ -32,6 +32,15 @@ const routes = [
       learning,
     ],
   },
+  // 404 页面兜底
+  {
+    /*
+    在 Vue Router 3（Vue2）中，我们常用 path: '*' 来做兜底。但在 Vue Router 4 中，通配符 * 已被移除，因为当使用 history 模式时，浏览器原生会将 * 视为非法字符。
+    */
+    path: '/:pathMatch(.*)*', // 核心正则匹配语法
+    name: 'NotFound',
+    component: () => import('@/views/404/NotFound.vue'),
+  },
 ]
 
 const router = createRouter({

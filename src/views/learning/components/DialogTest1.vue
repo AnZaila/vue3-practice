@@ -5,7 +5,7 @@
         {{ item.value }}
       </el-descriptions-item>
     </el-descriptions>
-    <section class="loading-area" v-loading="laodingSection"></section>
+    <section class="loading-area" v-loading="loadingSection "></section>
   </el-dialog>
 </template>
 <script setup lang="ts">
@@ -27,11 +27,11 @@ const visible = computed({
   set: (value: boolean) => emit('update:modelValue', value),
 })
 
-const laodingSection = ref<true | false>(true)
+const loadingSection  = ref<true | false>(true)
 
 onMounted(() => {
   setTimeout(() => {
-    laodingSection.value = false
+    loadingSection .value = false
   }, 3000)
 })
 </script>
