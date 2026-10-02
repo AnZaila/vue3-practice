@@ -23,7 +23,13 @@
           <el-form-item label="头像">
             <div class="avatar-row">
               <el-avatar :src="form.avatar" :size="56">{{ avatarText }}</el-avatar>
-              <el-upload :show-file-list="false" accept="image/*" :http-request="uploadAvatar">
+              <el-upload
+                ref="uploadRef"
+                :show-file-list="false"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                :auto-upload="false"
+                :on-change="onPickAvatar"
+              >
                 <el-button>上传头像</el-button>
               </el-upload>
             </div>
@@ -81,6 +87,8 @@
         </el-table>
       </el-card>
     </section>
+
+    <AvatarCropDialog v-model:visible="crop.visible" :file="crop.file" :loading="crop.saving" @confirm="uploadCropped" />
   </div>
 </template>
 
@@ -88,8 +96,9 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import type { UploadRequestOptions } from 'element-plus'
+import type { UploadFile, UploadInstance } from 'element-plus'
 import { authApi, fileApi } from '@/api'
+import AvatarCropDialog from './components/AvatarCropDialog.vue'
 import { usePermissionStore } from '@/stores/permission'
 import { useSessionStore } from '@/stores/session'
 import { useTabsStore } from '@/stores/tabs'
@@ -105,6 +114,8 @@ const changing = ref(false)
 const sessions = ref<OnlineSession[]>([])
 const form = reactive({ displayName: '', email: '', phone: '', avatar: '' })
 const pwd = reactive({ oldPassword: '', newPassword: '', confirm: '' })
+const uploadRef = ref<UploadInstance>()
+const crop = reactive({ visible: false, saving: false, file: null as File | null })
 const avatarText = computed(() => (form.displayName || 'N').slice(0, 1))
 const orgLabel = computed(() => [profile.value?.deptName, profile.value?.postName].filter(Boolean).join(' / ') || '--')
 
@@ -126,17 +137,42 @@ async function loadSessions() {
   sessions.value = await authApi.sessions()
 }
 
-async function uploadAvatar(options: UploadRequestOptions) {
-  const uploaded = await fileApi.upload(options.file as File, 'avatar')
-  form.avatar = uploaded.url
-  await saveProfile()
+function onPickAvatar(uploadFile: UploadFile) {
+  const raw = uploadFile.raw
+  uploadRef.value?.clearFiles()
+  if (!raw) {
+    return
+  }
+  if (!raw.type.startsWith('image/')) {
+    ElMessage.warning('请选择图片文件')
+    return
+  }
+  if (raw.size > 5 * 1024 * 1024) {
+    ElMessage.warning('图片不能超过 5MB')
+    return
+  }
+  crop.file = raw
+  crop.visible = true
+}
+
+async function uploadCropped(file: File) {
+  crop.saving = true
+  try {
+    const uploaded = await fileApi.upload(file, 'avatar')
+    form.avatar = uploaded.url
+    await saveProfile()
+    crop.visible = false
+    crop.file = null
+  } finally {
+    crop.saving = false
+  }
 }
 
 async function saveProfile() {
   saving.value = true
   try {
-    const next = await authApi.updateProfile(form)
-    session.applyProfile(next)
+    await authApi.updateProfile(form)
+    await session.reloadProfile()
     ElMessage.success('资料已更新')
   } finally {
     saving.value = false

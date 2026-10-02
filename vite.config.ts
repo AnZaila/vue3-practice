@@ -28,7 +28,7 @@ export default defineConfig({
     }),
   ],
   optimizeDeps: {
-    include: ['element-plus', '@element-plus/icons-vue'],
+    include: ['element-plus', '@element-plus/icons-vue', 'vue-cropper'],
   },
   server: {
     host: '0.0.0.0',
