@@ -114,6 +114,9 @@
     <el-divider></el-divider>
     <DialogTest1 v-model="DialogTest1Visible" :data="testData1" />
     <el-button type="primary" plain @click="checkDialogTest1">查看</el-button>
+    <el-divider/>
+    <el-button type="primary" @click="openMyChild5">打开MyChild5</el-button>
+    <MyChild5 v-model="Mychild5Visile" :userData="showUserData"/>
   </div>
 </template>
 <script setup lang="ts">
@@ -144,6 +147,8 @@ import { userDataShowType, type InfoDialogMode, type UserInfo } from '@/types/le
 import type { User } from '@/types/learning.ts'
 import type { DepartmentRecord } from '@/types/organization.ts'
 import DialogTest1 from './components/DialogTest1.vue'
+import MyChild5 from './components/MyChild5.vue'
+import { tr } from 'element-plus/es/locales.mjs'
 // 1、ref
 const pageTitle = ref('This is a Vue3 learning page.')
 // hooks
@@ -446,6 +451,13 @@ const testData1 = ref<Record<string, string>[]>([
 
 const checkDialogTest1 = () => {
   DialogTest1Visible.value = true
+}
+
+// MyChild5
+const Mychild5Visile = ref(false);
+
+const openMyChild5 = () => {
+  Mychild5Visile.value = true;
 }
 </script>
 
