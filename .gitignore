@@ -15,8 +15,8 @@ coverage
 *.local
 docs
 .env
-.env.*
-!.env.example
+.env.local
+.env.*.local
 
 # Editor directories and files
 .vscode/*

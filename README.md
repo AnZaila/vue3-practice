@@ -22,7 +22,6 @@ $env:Path = "$env:JAVA_HOME\bin;" + $env:Path
 前端：
 
 ```sh
-cp .env.example .env
 pnpm install
 pnpm dev
 ```
@@ -38,4 +37,9 @@ pnpm dev
 | ops | Ops@123456 | 运营经理 |
 | reviewer | Reviewer@123456 | 审核员，首次登录需改密 |
 
-生产构建会关闭平台实验室：`.env.production` 中 `VITE_ENABLE_LAB=false`。
+环境变量：
+
+- `.env.example`：变量清单，方便对照，不参与运行
+- `.env.development`：`pnpm dev` 使用，默认打开平台实验室
+- `.env.production`：`pnpm build` 使用，关闭平台实验室（`VITE_ENABLE_LAB=false`）
+- `.env` / `.env.*.local`：本机覆盖，不提交
