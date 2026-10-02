@@ -1,48 +1,41 @@
-# vue3-practice
+# Northstar 运营管理平台
 
-This template should help get you started developing with Vue 3 in Vite.
+前后端分离：Vue 3 管理端独立部署，Java 后端提供 `/api/v1` 接口。默认通过 Vite 把 `/api` 代理到 `http://localhost:8080`。
 
-## Recommended IDE Setup
+## 技术栈
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- 前端：Vue 3 + TypeScript + Vite + Pinia + Vue Router + Element Plus + axios
+- 后端：Spring Boot 4 + Java 17 + MyBatis-Plus + Sa-Token + **MySQL**（默认，账号 `root/root`，库 `northstar`）；本地也可 `--spring.profiles.active=h2`
+- 鉴权：Access Token 仅存内存，Refresh Token 存 `sessionStorage`，请求头 `Authorization: Bearer`
 
-## Recommended Browser Setup
+## 启动
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+后端（需 JDK 17）：
 
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
+```powershell
+cd "D:\Study\JavaStudy\NorthStart Operations Management Platform"
+$env:JAVA_HOME = "C:\Program Files\Microsoft\jdk-17.0.20.101-hotspot"
+$env:Path = "$env:JAVA_HOME\bin;" + $env:Path
+.\mvnw.cmd -DskipTests spring-boot:run
 ```
 
-### Compile and Hot-Reload for Development
+前端：
 
 ```sh
-npm run dev
+cp .env.example .env
+pnpm install
+pnpm dev
 ```
 
-### Type-Check, Compile and Minify for Production
+浏览器访问 `http://localhost:8081`。
 
-```sh
-npm run build
-```
+演示账号：
 
-### Lint with [ESLint](https://eslint.org/)
+| 账号 | 密码 | 说明 |
+| --- | --- | --- |
+| admin | Admin@123456 | 超级管理员 |
+| member | Member@123456 | 普通成员（无系统管理菜单） |
+| ops | Ops@123456 | 运营经理 |
+| reviewer | Reviewer@123456 | 审核员，首次登录需改密 |
 
-```sh
-npm run lint
-```
+生产构建会关闭平台实验室：`.env.production` 中 `VITE_ENABLE_LAB=false`。

@@ -10,27 +10,35 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // base: '/vue3-practice/', // 用于 gh-pages 分支作为存放dist文件来访问的配置
+  // base: '/NorthStart Operations Management Platform/', // 用于 gh-pages 分支作为存放dist文件来访问的配置
   plugins: [
     vue(),
     // vueDevTools(), // Vue开发工具
     AutoImport({
       // 自动导入vue、element‑plus的api，不用import ref、ElMessage
       imports: ['vue'],
-      resolvers: [ElementPlusResolver()],
+      resolvers: [ElementPlusResolver({ importStyle: false })],
       dts: true, // 生成 auto‑imports.d.ts 类型声明
     }),
 
     Components({
       // 1、自动识别模板里面的 <el‑xxx> 组件
-      resolvers: [ElementPlusResolver()],
+      resolvers: [ElementPlusResolver({ importStyle: false })],
       dts: true, // 生成 components.d.ts 类型声明
     }),
   ],
+  optimizeDeps: {
+    include: ['element-plus', '@element-plus/icons-vue'],
+  },
   server: {
     host: '0.0.0.0',
-    port: 8080,
-    open: true, // 自动打开浏览器
+    port: 8081,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+    },
   },
   resolve: {
     alias: {
