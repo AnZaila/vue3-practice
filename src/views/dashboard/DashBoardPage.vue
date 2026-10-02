@@ -1,32 +1,32 @@
 <template>
-  <div class="dashboard-page">
+  <div class="dashboard-page" v-loading="loading">
     <section class="hero-card">
       <div class="hero-copy">
         <span class="eyebrow">OPERATION CENTER</span>
-        <h2>上午好，林知远</h2>
-        <p>今天先处理 12 项待办，平台整体运行稳定，近 7 日访问量持续上升。</p>
+        <h2>{{ greeting }}，{{ overview.displayName || '同事' }}</h2>
+        <p>今天先处理 {{ overview.todoCount }} 项待办，待审批 {{ overview.pendingApproval }} 项，今日访问 {{ overview.todayVisits }}。</p>
       </div>
       <div class="hero-panel">
         <div class="hero-stat">
-          <strong>96.4%</strong>
+          <strong>{{ overview.onlineRate || '--' }}</strong>
           <span>在线率</span>
         </div>
         <div class="hero-stat">
-          <strong>28</strong>
+          <strong>{{ overview.pendingApproval }}</strong>
           <span>待审批</span>
         </div>
         <div class="hero-stat">
-          <strong>1,284</strong>
+          <strong>{{ overview.todayVisits }}</strong>
           <span>今日访问</span>
         </div>
       </div>
     </section>
 
     <section class="metric-grid">
-      <article v-for="item in dashboard.metrics" :key="item.label" class="metric-card">
+      <article v-for="item in overview.metrics" :key="item.label" class="metric-card">
         <span class="metric-label">{{ item.label }}</span>
         <strong>{{ item.value }}</strong>
-        <em :class="item.trendType">{{ item.trend }} 较上周</em>
+        <em :class="item.trendType">{{ item.trend }}</em>
       </article>
     </section>
 
@@ -36,7 +36,7 @@
           <div class="panel-title">
             <div>
               <strong>访问趋势</strong>
-              <span>近 7 日访问量变化</span>
+              <span>近 7 日成功登录次数</span>
             </div>
             <el-tag type="success" effect="light">实时</el-tag>
           </div>
@@ -60,8 +60,8 @@
         <template #header>
           <div class="panel-title">
             <div>
-              <strong>工单处理量</strong>
-              <span>已完成与待处理数量对比</span>
+              <strong>登录结果</strong>
+              <span>成功登录与失败尝试对比</span>
             </div>
           </div>
         </template>
@@ -78,7 +78,13 @@
           </div>
         </template>
         <div class="task-list">
-          <div v-for="task in dashboard.tasks" :key="task.title" class="task-item">
+          <div v-if="!overview.tasks.length" class="task-item">
+            <div>
+              <strong>暂无待办</strong>
+              <p>当前没有需要立刻处理的事项。</p>
+            </div>
+          </div>
+          <div v-for="task in overview.tasks" :key="task.title" class="task-item">
             <div>
               <strong>{{ task.title }}</strong>
               <p>{{ task.desc }}</p>
@@ -91,17 +97,15 @@
       <el-card shadow="never" class="panel-card">
         <template #header>
           <div class="panel-title">
-            <strong>学习提示</strong>
-            <span>静态数据模拟接口</span>
+            <strong>接入说明</strong>
+            <span>前后端分离</span>
           </div>
         </template>
         <div class="learning-tip">
           <div class="tip-index">01</div>
           <div>
-            <strong>数据与视图分离</strong>
-            <p>
-              当前页面从 <code>src/mock/dashboard.ts</code> 获取数据，替换为真实接口时只需要调整数据来源。
-            </p>
+            <strong>页面只消费接口</strong>
+            <p>工作台数据来自 <code>/api/v1/dashboard/overview</code>，权限菜单来自登录后的用户上下文。</p>
           </div>
         </div>
       </el-card>
@@ -113,15 +117,33 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import EChartPanel from '@/components/EChartPanel.vue'
 import { createOrderOption, createSourceOption, createTrafficOption } from '@/charts/dashboard'
-import { fetchDashboardData } from '@/mock/dashboard'
-import type { DashboardChartTheme, DashboardData } from '@/types/dashboard'
+import { dashboardApi } from '@/api'
+import type { DashboardChartTheme } from '@/types/dashboard'
+import type { DashboardOverview } from '@/types/models'
 
-const dashboard = ref<DashboardData>({
+const loading = ref(false)
+const overview = ref<DashboardOverview>({
+  displayName: '',
+  todoCount: 0,
+  pendingApproval: 0,
+  todayVisits: 0,
+  onlineRate: '--',
   metrics: [],
   tasks: [],
   traffic: { days: [], values: [] },
   sources: [],
   orders: { days: [], completed: [], pending: [] },
+})
+
+const greeting = computed(() => {
+  const hour = new Date().getHours()
+  if (hour < 12) {
+    return '上午好'
+  }
+  if (hour < 18) {
+    return '下午好'
+  }
+  return '晚上好'
 })
 
 const fallbackThemeColors: DashboardChartTheme = {
@@ -139,9 +161,7 @@ function readThemeColors(): DashboardChartTheme {
   if (typeof window === 'undefined') {
     return fallbackThemeColors
   }
-
   const styles = getComputedStyle(document.documentElement)
-
   return {
     muted: styles.getPropertyValue('--color-text-muted').trim() || fallbackThemeColors.muted,
     strong: styles.getPropertyValue('--color-text-strong').trim() || fallbackThemeColors.strong,
@@ -154,9 +174,9 @@ function syncThemeColors() {
   themeColors.value = readThemeColors()
 }
 
-const trafficOption = computed(() => createTrafficOption(dashboard.value.traffic, themeColors.value))
-const sourceOption = computed(() => createSourceOption(dashboard.value.sources, themeColors.value))
-const orderOption = computed(() => createOrderOption(dashboard.value.orders, themeColors.value))
+const trafficOption = computed(() => createTrafficOption(overview.value.traffic, themeColors.value))
+const sourceOption = computed(() => createSourceOption(overview.value.sources, themeColors.value))
+const orderOption = computed(() => createOrderOption(overview.value.orders, themeColors.value))
 
 onMounted(async () => {
   syncThemeColors()
@@ -165,13 +185,16 @@ onMounted(async () => {
     attributes: true,
     attributeFilter: ['data-theme'],
   })
-
   if (!document.documentElement.dataset.theme) {
     themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     themeMediaQuery.addEventListener('change', syncThemeColors)
   }
-
-  dashboard.value = await fetchDashboardData()
+  loading.value = true
+  try {
+    overview.value = await dashboardApi.overview()
+  } finally {
+    loading.value = false
+  }
 })
 
 onBeforeUnmount(() => {

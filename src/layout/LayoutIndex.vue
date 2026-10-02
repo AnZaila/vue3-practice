@@ -1,43 +1,43 @@
 <template>
   <el-container class="layout-container">
-    <el-aside :width="isCollapsed ? '76px' : '244px'" class="layout-aside">
-      <div class="brand-block">
+    <el-aside :width="appStore.collapsed ? '90px' : '244px'" class="layout-aside">
+      <div class="brand-block" :class="{ isCollapsed: appStore.collapsed }">
         <div class="brand-mark">N</div>
-        <div v-if="!isCollapsed" class="brand-copy">
+        <div v-if="!appStore.collapsed" class="brand-copy">
           <strong>Northstar</strong>
           <span>运营管理平台</span>
         </div>
       </div>
-
-      <div v-if="!isCollapsed" class="menu-caption">WORKSPACE</div>
-      <el-menu
-        :key="menuStore.version"
-        :default-active="route.path"
-        :default-openeds="[]"
-        :collapse="isCollapsed"
-        background-color="var(--color-surface-elevated)"
-        text-color="var(--color-text)"
-        active-text-color="var(--color-primary)"
-        router
-        class="side-menu"
-      >
-        <SidebarMenuTree :menus="menuStore.menus" />
-      </el-menu>
+      <el-scrollbar>
+        <el-menu
+          :key="permissionStore.version"
+          :default-active="route.path"
+          :collapse="appStore.collapsed"
+          background-color="var(--color-surface-elevated)"
+          text-color="var(--color-text)"
+          active-text-color="var(--color-primary)"
+          router
+          class="side-menu"
+        >
+          <SidebarMenuTree :menus="permissionStore.sidebar" />
+        </el-menu>
+      </el-scrollbar>
 
       <div class="aside-foot">
         <div class="status-dot"></div>
-        <span v-if="!isCollapsed" style="min-width: 73px">系统运行正常</span>
+        <span v-if="!appStore.collapsed" style="min-width: 73px">系统运行正常</span>
       </div>
     </el-aside>
 
     <el-container class="content-container">
       <LayoutHeader
-        v-model:collapsed="isCollapsed"
-        :is-dark="isDark"
+        v-model:collapsed="appStore.collapsed"
+        :is-dark="appStore.theme === 'dark'"
         :today-label="todayLabel"
-        @toggle-theme="toggleTheme"
+        @toggle-theme="appStore.toggleTheme"
         @command="handleCommand"
       />
+      <TagsView />
       <el-main class="layout-main">
         <router-view v-slot="{ Component }">
           <Transition name="page" mode="out-in">
@@ -50,18 +50,22 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { useMenuStore } from '@/stores/menu'
+import { useAppStore } from '@/stores/app'
+import { usePermissionStore } from '@/stores/permission'
+import { useSessionStore } from '@/stores/session'
+import { useTabsStore } from '@/stores/tabs'
 import LayoutHeader from './components/LayoutHeader.vue'
 import SidebarMenuTree from './components/SidebarMenuTree.vue'
+import TagsView from './components/TagsView.vue'
 
-const menuStore = useMenuStore()
+const appStore = useAppStore()
+const permissionStore = usePermissionStore()
+const sessionStore = useSessionStore()
+const tabsStore = useTabsStore()
 const route = useRoute()
 const router = useRouter()
-const isCollapsed = ref(false)
-const isDark = ref(resolveInitialTheme() === 'dark')
 
 const todayLabel = new Intl.DateTimeFormat('zh-CN', {
   year: 'numeric',
@@ -70,40 +74,18 @@ const todayLabel = new Intl.DateTimeFormat('zh-CN', {
   weekday: 'long',
 }).format(new Date())
 
-function resolveInitialTheme() {
-  const savedTheme = localStorage.getItem('theme')
-
-  if (savedTheme === 'dark' || savedTheme === 'light') {
-    return savedTheme
-  }
-
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-}
-
-function applyTheme(theme: 'dark' | 'light') {
-  document.documentElement.dataset.theme = theme
-  localStorage.setItem('theme', theme)
-  isDark.value = theme === 'dark'
-}
-
-function toggleTheme() {
-  applyTheme(isDark.value ? 'light' : 'dark')
-}
-
-function handleCommand(command: string) {
+async function handleCommand(command: string) {
   if (command === 'logout') {
+    await sessionStore.logout()
+    permissionStore.reset(router)
+    tabsStore.reset()
     ElMessage.success('已安全退出')
-    router.push('/login')
+    await router.push('/login')
   }
-
   if (command === 'profile') {
-    ElMessage.info('个人中心会在后续版本补上')
+    await router.push('/profile')
   }
 }
-
-onMounted(() => {
-  void menuStore.loadMenus()
-})
 </script>
 
 <style lang="scss" scoped>
@@ -132,6 +114,9 @@ onMounted(() => {
   height: 84px;
   padding: 0 22px;
   color: var(--color-text-strong);
+  &.isCollapsed {
+    justify-content: center;
+  }
 }
 
 .brand-mark {
@@ -168,23 +153,30 @@ onMounted(() => {
   }
 }
 
-.menu-caption {
-  padding: 16px 24px 9px;
-  color: #9aa3af;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-}
-
 .side-menu {
   flex: 1;
-  overflow-y: auto;
+  width: 100%;
   border-right: 0;
   background: transparent;
   --el-menu-bg-color: transparent;
   --el-menu-text-color: var(--color-text);
   --el-menu-active-color: var(--color-primary);
   --el-menu-hover-bg-color: var(--color-surface-muted);
+
+  :deep(.el-menu-item) {
+    position: relative;
+    &::before {
+      content: '';
+      display: inline-block;
+      position: absolute;
+      width: 2.5px;
+      height: 0;
+      left: 10px;
+      border-radius: 4px;
+      background-color: var(--el-color-primary);
+      transition: 0.3s;
+    }
+  }
 
   :deep(.el-menu-item),
   :deep(.el-sub-menu__title) {
@@ -206,6 +198,9 @@ onMounted(() => {
     background: var(--color-primary-soft);
     color: var(--color-primary);
     font-weight: 600;
+    &::before {
+      height: 30%;
+    }
   }
 
   :deep(.el-sub-menu .el-menu-item) {
@@ -258,7 +253,7 @@ onMounted(() => {
 .layout-main {
   min-height: 0;
   flex: 1;
-  padding: 34px;
+  padding: 20px;
   overflow: auto;
   background: transparent;
 }
@@ -286,7 +281,6 @@ onMounted(() => {
     padding: 0;
   }
 
-  .menu-caption,
   .aside-foot span,
   .side-menu :deep(.el-menu-item),
   .side-menu :deep(.el-sub-menu__title) {

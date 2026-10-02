@@ -23,6 +23,25 @@
     </div>
     <div class="header-right">
       <div class="header-date">{{ todayLabel }}</div>
+      <el-dropdown trigger="click" :hide-on-click="false">
+        <button class="theme-button" type="button" aria-label="通知">
+          <el-badge :value="unread" :hidden="unread === 0" :max="99">
+            <el-icon><Bell /></el-icon>
+          </el-badge>
+        </button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item v-if="!notices.length" disabled>暂无通知</el-dropdown-item>
+            <el-dropdown-item v-for="item in notices" :key="item.id" @click="markRead(item)">
+              <div class="notice-item" :class="{ unread: !item.readFlag }">
+                <strong>{{ item.title }}</strong>
+                <small>{{ item.content }}</small>
+              </div>
+            </el-dropdown-item>
+            <el-dropdown-item v-if="unread" divided @click="markAll">全部标为已读</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
       <button
         class="theme-button"
         type="button"
@@ -37,10 +56,13 @@
       </button>
       <el-dropdown trigger="click" @command="handleCommand">
         <button class="profile-button" type="button">
-          <span class="avatar">林</span>
+          <span class="avatar">
+            <img v-if="session.profile?.avatar" :src="session.profile.avatar" alt="" />
+            <template v-else>{{ avatarText }}</template>
+          </span>
           <span class="profile-copy">
-            <strong>林知远</strong>
-            <small>超级管理员</small>
+            <strong>{{ session.displayName || '未登录' }}</strong>
+            <small>{{ roleLabel }}</small>
           </span>
           <span class="chevron">
           <el-icon><ArrowDown /></el-icon>
@@ -58,9 +80,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
-import { ArrowLeft, ArrowRight, Sunny, Moon, ArrowDown} from '@element-plus/icons-vue'
+import { ArrowLeft, ArrowRight, Sunny, Moon, ArrowDown, Bell } from '@element-plus/icons-vue'
+import { noticeApi } from '@/api'
+import { useSessionStore } from '@/stores/session'
+import type { Notice } from '@/types/models'
 
 interface BreadcrumbItem {
   title: string
@@ -81,10 +106,37 @@ const emit = defineEmits<{
 }>()
 
 const route = useRoute()
+const session = useSessionStore()
+const avatarText = computed(() => (session.displayName || 'N').slice(0, 1))
+const roleLabel = computed(() => session.profile?.roleNames?.[0] || session.profile?.roles?.[0] || '成员')
+const notices = ref<Notice[]>([])
+const unread = computed(() => notices.value.filter((item) => !item.readFlag).length)
+
+async function loadNotices() {
+  notices.value = await noticeApi.list()
+}
+
+async function markRead(item: Notice) {
+  if (item.readFlag) {
+    return
+  }
+  await noticeApi.read(item.id)
+  item.readFlag = 1
+}
+
+async function markAll() {
+  await noticeApi.readAll()
+  notices.value = notices.value.map((item) => ({ ...item, readFlag: 1 }))
+}
+
+onMounted(() => {
+  loadNotices().catch(() => {
+    notices.value = []
+  })
+})
 
 const breadcrumbs = computed<BreadcrumbItem[]>(() => {
   const matchedRoutes = route.matched.filter((item) => item.meta.title)
-
   return matchedRoutes.map((item, index) => ({
     title: item.meta.title as string,
     path: item.path,
@@ -191,6 +243,28 @@ function handleCommand(command: string | number | object) {
   color: var(--color-primary);
 }
 
+.notice-item {
+  display: grid;
+  gap: 4px;
+  max-width: 280px;
+  white-space: normal;
+
+  strong {
+    color: var(--color-text-strong);
+    font-size: 13px;
+  }
+
+  small {
+    color: var(--color-text-muted);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  &.unread strong {
+    color: var(--color-primary);
+  }
+}
+
 .header-date {
   color: var(--color-text-muted);
   font-size: 12px;
@@ -210,11 +284,18 @@ function handleCommand(command: string | number | object) {
   width: 36px;
   height: 36px;
   place-items: center;
+  overflow: hidden;
   border-radius: 50%;
   background: var(--color-primary-soft);
   color: var(--color-primary);
   font-size: 14px;
   font-weight: 700;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 }
 
 .profile-copy {

@@ -1,17 +1,17 @@
 <template>
-  <template v-for="item in menus" :key="item.path">
-    <el-menu-item v-if="!item.children?.length" :index="item.path">
+  <template v-for="item in menus" :key="item.id">
+    <el-menu-item v-if="!item.children?.length" :index="item.path || String(item.id)">
       <el-icon class="menu-icon">
         <component :is="resolveMenuIcon(item.icon)" />
       </el-icon>
-      <template #title>{{ item.label }}</template>
+      <span>{{ item.name }}</span>
     </el-menu-item>
-    <el-sub-menu v-else :index="item.path">
+    <el-sub-menu v-else :index="item.path || String(item.id)">
       <template #title>
         <el-icon class="menu-icon">
           <component :is="resolveMenuIcon(item.icon)" />
         </el-icon>
-        <span>{{ item.label }}</span>
+        <span>{{ item.name }}</span>
       </template>
       <SidebarMenuTree :menus="item.children ?? []" />
     </el-sub-menu>
@@ -20,11 +20,9 @@
 
 <script setup lang="ts">
 import { resolveMenuIcon } from '@/constants/menuIcons'
-import type { MenuNode } from '@/types/menu'
+import type { MenuNode } from '@/types/models'
 
-defineOptions({
-  name: 'SidebarMenuTree',
-})
+defineOptions({ name: 'SidebarMenuTree' })
 
 defineProps<{
   menus: MenuNode[]
@@ -35,7 +33,7 @@ defineProps<{
 .menu-icon {
   width: 25px;
   margin-right: 8px;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   font-size: 18px;
   text-align: center;
 }
