@@ -3,68 +3,97 @@ import { computed, ref } from 'vue'
 const visible = ref(false)
 const progress = ref(0)
 
-let activeCount = 0
-let timer: number | null = null
+let routeBusy = false
+let requestCount = 0
+let tickTimer: number | null = null
 let hideTimer: number | null = null
+let safetyTimer: number | null = null
 
-function clearTimers() {
-  if (timer !== null) {
-    window.clearInterval(timer)
-    timer = null
-  }
-
-  if (hideTimer !== null) {
-    window.clearTimeout(hideTimer)
-    hideTimer = null
+function clearTimer(id: number | null) {
+  if (id !== null) {
+    window.clearTimeout(id)
+    window.clearInterval(id)
   }
 }
 
-function startTimer() {
-  if (timer !== null) {
-    return
-  }
-
-  timer = window.setInterval(() => {
-    if (!visible.value) {
-      return
-    }
-
-    const next = progress.value < 80 ? progress.value + 6 : progress.value < 92 ? progress.value + 1.5 : progress.value
-    progress.value = Math.min(92, Number(next.toFixed(1)))
-  }, 120)
+function stopTick() {
+  clearTimer(tickTimer)
+  tickTimer = null
 }
 
-export function startPageProgress() {
-  activeCount += 1
-
-  if (activeCount > 1) {
-    return
-  }
-
-  clearTimers()
-  visible.value = true
-  progress.value = 14
-  startTimer()
+function stopHide() {
+  clearTimer(hideTimer)
+  hideTimer = null
 }
 
-export function finishPageProgress() {
-  if (activeCount === 0) {
-    return
+function stopSafety() {
+  clearTimer(safetyTimer)
+  safetyTimer = null
+}
+
+function armSafety() {
+  stopSafety()
+  safetyTimer = window.setTimeout(() => {
+    routeBusy = false
+    requestCount = 0
+    hideNow()
+  }, 8000)
+}
+
+function show() {
+  stopHide()
+  if (!visible.value) {
+    visible.value = true
+    progress.value = 14
   }
-
-  activeCount -= 1
-
-  if (activeCount > 0) {
-    return
+  if (tickTimer === null) {
+    tickTimer = window.setInterval(() => {
+      if (!visible.value) {
+        return
+      }
+      const next = progress.value < 80 ? progress.value + 6 : progress.value < 92 ? progress.value + 1.2 : progress.value
+      progress.value = Math.min(92, Number(next.toFixed(1)))
+    }, 120)
   }
+  armSafety()
+}
 
-  clearTimers()
+function hideNow() {
+  stopTick()
+  stopSafety()
   progress.value = 100
   hideTimer = window.setTimeout(() => {
     visible.value = false
     progress.value = 0
     hideTimer = null
   }, 180)
+}
+
+function maybeHide() {
+  if (!routeBusy && requestCount <= 0) {
+    requestCount = 0
+    hideNow()
+  }
+}
+
+export function startPageProgress() {
+  routeBusy = true
+  show()
+}
+
+export function finishPageProgress() {
+  routeBusy = false
+  maybeHide()
+}
+
+export function startRequestProgress() {
+  requestCount += 1
+  show()
+}
+
+export function finishRequestProgress() {
+  requestCount = Math.max(0, requestCount - 1)
+  maybeHide()
 }
 
 export const pageProgressState = {

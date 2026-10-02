@@ -1,16 +1,46 @@
 import type { Component } from 'vue'
-import { Collection, Connection, Folder, House, Setting, User } from '@element-plus/icons-vue'
-import type { MenuIconName } from '@/types/menu'
-
-export const menuIconMap: Record<MenuIconName, Component> = {
+import {
   Collection,
   Connection,
+  Cpu,
+  Document,
   Folder,
   House,
+  Key,
+  Lock,
+  Menu,
+  Monitor,
+  OfficeBuilding,
+  Paperclip,
+  Postcard,
   Setting,
+  Tickets,
+  Tools,
   User,
+  UserFilled,
+} from '@element-plus/icons-vue'
+
+export const menuIconMap: Record<string, Component> = {
+  Collection,
+  Connection,
+  Cpu,
+  Document,
+  Folder,
+  House,
+  Key,
+  Lock,
+  Menu,
+  Monitor,
+  OfficeBuilding,
+  Paperclip,
+  Postcard,
+  Setting,
+  Tickets,
+  Tools,
+  User,
+  UserFilled,
 }
 
-export function resolveMenuIcon(icon?: MenuIconName) {
-  return icon ? menuIconMap[icon] : Folder
+export function resolveMenuIcon(icon?: string) {
+  return icon && menuIconMap[icon] ? menuIconMap[icon] : Folder
 }

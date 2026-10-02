@@ -1,25 +1,23 @@
-import './assets/style/main.scss'
-import 'element-plus/dist/index.css'
-// 引入自定义覆盖样式（必须在 Element Plus 样式之后）
-import './assets/style/element-plus.scss'
-
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'
 
+import './assets/style/base.scss'
+import 'element-plus/dist/index.css'
+import './assets/style/element-plus.scss'
+import './assets/style/page.scss'
+
 import App from './App.vue'
 import router from './router'
-
-const savedTheme = localStorage.getItem('theme')
-
-if (savedTheme === 'dark' || savedTheme === 'light') {
-  document.documentElement.dataset.theme = savedTheme
-}
+import { permissionDirective } from './directives/permission'
+import { useAppStore } from './stores/app'
 
 const app = createApp(App)
+const pinia = createPinia()
 
-app.use(createPinia())
+app.use(pinia)
+useAppStore()
 app.use(router)
 app.use(ElementPlus)
-
+app.directive('permission', permissionDirective)
 app.mount('#app')
