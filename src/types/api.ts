@@ -36,6 +36,7 @@ export class ApiError extends Error {
 
 export const ErrorCode = {
   OK: 0,
+  BAD_REQUEST: 40000,
   UNAUTHORIZED: 40001,
   FORBIDDEN: 40003,
   NOT_FOUND: 40004,
