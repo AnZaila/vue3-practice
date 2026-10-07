@@ -3,9 +3,16 @@ html:root {
   --el-color-success: var(--color-success);
   --el-bg-color: var(--color-surface);
   --el-bg-color-page: var(--color-bg);
+  --el-bg-color-overlay: var(--color-surface);
+  --el-fill-color: var(--color-surface-muted);
   --el-fill-color-blank: var(--color-surface);
   --el-fill-color-light: var(--color-surface-muted);
   --el-fill-color-lighter: var(--color-surface-muted);
+  --el-fill-color-extra-light: var(--color-surface-muted);
+  --el-fill-color-dark: var(--color-surface-muted);
+  --el-fill-color-darker: var(--color-surface-muted);
+  --el-text-color-placeholder: var(--color-text-muted);
+  --el-text-color-disabled: var(--color-text-muted);
   --el-border-color: var(--color-border);
   --el-border-color-light: var(--color-border);
   --el-border-color-lighter: var(--color-border);
@@ -113,4 +120,56 @@ html:root[data-theme='dark'] {
 .el-loading-mask {
   background-color: var(--el-loading-mask-bg, var(--el-mask-color));
   backdrop-filter: var(--el-loading-mask-blur, none);
+}
+
+.el-dropdown-menu,
+.el-select-dropdown,
+.el-picker-panel,
+.el-popper.is-light,
+.el-menu--popup {
+  color: var(--color-text);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+.el-select-dropdown__item.is-hovering {
+  background-color: var(--color-surface-muted);
+}
+
+.el-select-dropdown__item.is-selected {
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.el-menu--popup {
+  --el-menu-bg-color: var(--color-surface);
+  --el-menu-text-color: var(--color-text);
+  --el-menu-hover-bg-color: var(--color-surface-muted);
+  --el-menu-hover-text-color: var(--color-text-strong);
+  --el-menu-active-color: var(--color-primary);
+  min-width: 180px;
+  padding: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: 0 12px 30px var(--color-shadow);
+
+  .el-menu-item,
+  .el-sub-menu__title {
+    height: 44px;
+    margin: 2px 4px;
+    border-radius: 8px;
+    color: var(--color-text);
+  }
+
+  .el-menu-item:hover,
+  .el-sub-menu__title:hover {
+    background-color: var(--color-surface-muted);
+    color: var(--color-text-strong);
+  }
+
+  .el-menu-item.is-active {
+    background-color: var(--color-primary-soft);
+    color: var(--color-primary);
+    font-weight: 600;
+  }
 }

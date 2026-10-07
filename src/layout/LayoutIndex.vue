@@ -14,9 +14,6 @@
           :key="permissionStore.version"
           :default-active="route.path"
           :collapse="appStore.collapsed"
-          background-color="var(--color-surface-elevated)"
-          text-color="var(--color-text)"
-          active-text-color="var(--color-primary)"
           router
           class="side-menu"
         >
