@@ -5,9 +5,14 @@ html:root {
   --el-bg-color-page: var(--color-bg);
   --el-fill-color-blank: var(--color-surface);
   --el-fill-color-light: var(--color-surface-muted);
-  --el-fill-color-lighter: #f5f7fa;
+  --el-fill-color-lighter: var(--color-surface-muted);
   --el-border-color: var(--color-border);
   --el-border-color-light: var(--color-border);
+  --el-border-color-lighter: var(--color-border);
+  --el-border-color-extra-light: var(--color-border);
+  --el-border-color-dark: var(--color-border);
+  --el-border-color-darker: var(--color-border);
+  --el-disabled-border-color: var(--color-border);
   --el-text-color-primary: var(--color-text-strong);
   --el-text-color-regular: var(--color-text);
   --el-text-color-secondary: var(--color-text-muted);
@@ -19,8 +24,8 @@ html:root {
   --el-tag-text-color: var(--color-primary);
   --el-table-tr-bg-color: var(--color-surface);
   --el-table-row-hover-bg-color: var(--color-surface-muted);
-  --el-table-header-bg-color: #fafbfc;
-  --el-table-border-color: #edf0f4;
+  --el-table-header-bg-color: var(--color-surface-muted);
+  --el-table-border-color: var(--color-border);
   --el-color-primary-light-3: #7393ff;
   --el-color-primary-light-5: #a5b9ff;
   --el-color-primary-light-7: #d7e0ff;
@@ -80,6 +85,10 @@ html:root {
 
 html:root[data-theme='dark'] {
   @include el-dark;
+}
+
+.el-table {
+  --el-table-border-color: var(--color-border);
 }
 
 .el-table .el-table-fixed-column--left,

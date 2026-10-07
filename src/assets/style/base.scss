@@ -70,6 +70,7 @@
 
 :root[data-theme='light'] {
   color-scheme: light;
+  @include light-tokens;
 }
 
 *,

@@ -31,6 +31,7 @@ export default defineConfig({
     include: ['element-plus', '@element-plus/icons-vue', 'vue-cropper'],
   },
   server: {
+    open: true, // 启动后自动打开浏览器
     host: '0.0.0.0',
     port: 8081,
     proxy: {
