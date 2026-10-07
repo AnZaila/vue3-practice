@@ -1,4 +1,5 @@
 <template>
+  <TopProgressBar/>
   <el-container class="layout-container">
     <el-aside :width="appStore.collapsed ? '90px' : '244px'" class="layout-aside">
       <div class="brand-block" :class="{ isCollapsed: appStore.collapsed }">
@@ -59,6 +60,7 @@ import { useTabsStore } from '@/stores/tabs'
 import LayoutHeader from './components/LayoutHeader.vue'
 import SidebarMenuTree from './components/SidebarMenuTree.vue'
 import TagsView from './components/TagsView.vue'
+import TopProgressBar from '@/components/TopProgressBar.vue'
 
 const appStore = useAppStore()
 const permissionStore = usePermissionStore()

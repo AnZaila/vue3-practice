@@ -47,8 +47,8 @@ const formRef = ref<FormInstance>()
 const loading = ref(false)
 const captcha = reactive<CaptchaPayload>({ captchaId: '', question: '', required: false })
 const form = reactive({
-  username: 'admin',
-  password: 'Admin@123456',
+  username: '',
+  password: '',
   captchaCode: '',
 })
 

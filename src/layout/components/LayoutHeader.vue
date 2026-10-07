@@ -57,8 +57,7 @@
       <el-dropdown trigger="click" @command="handleCommand">
         <button class="profile-button" type="button">
           <span class="avatar">
-            <img v-if="session.profile?.avatar" :src="session.profile.avatar" alt="" />
-            <template v-else>{{ avatarText }}</template>
+            <UserAvatar :src="session.profile?.avatar" :name="session.displayName" :size="36" />
           </span>
           <span class="profile-copy">
             <strong>{{ session.displayName || '未登录' }}</strong>
@@ -84,6 +83,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { ArrowLeft, ArrowRight, Sunny, Moon, ArrowDown, Bell } from '@element-plus/icons-vue'
 import { noticeApi } from '@/api'
+import UserAvatar from '@/components/UserAvatar.vue'
 import { useSessionStore } from '@/stores/session'
 import type { Notice } from '@/types/models'
 
@@ -107,7 +107,6 @@ const emit = defineEmits<{
 
 const route = useRoute()
 const session = useSessionStore()
-const avatarText = computed(() => (session.displayName || 'N').slice(0, 1))
 const roleLabel = computed(() => session.profile?.roleNames?.[0] || session.profile?.roles?.[0] || '成员')
 const notices = ref<Notice[]>([])
 const unread = computed(() => notices.value.filter((item) => !item.readFlag).length)
@@ -280,22 +279,7 @@ function handleCommand(command: string | number | object) {
 }
 
 .avatar {
-  display: grid;
-  width: 36px;
-  height: 36px;
-  place-items: center;
-  overflow: hidden;
-  border-radius: 50%;
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  font-size: 14px;
-  font-weight: 700;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
+  display: inline-flex;
 }
 
 .profile-copy {

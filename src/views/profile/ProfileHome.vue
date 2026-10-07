@@ -22,7 +22,7 @@
         <el-form :model="form" label-position="top">
           <el-form-item label="头像">
             <div class="avatar-row">
-              <el-avatar :src="form.avatar" :size="56">{{ avatarText }}</el-avatar>
+              <UserAvatar :src="form.avatar" :name="form.displayName" :size="56" />
               <el-upload
                 ref="uploadRef"
                 :show-file-list="false"
@@ -98,6 +98,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { UploadFile, UploadInstance } from 'element-plus'
 import { authApi, fileApi } from '@/api'
+import UserAvatar from '@/components/UserAvatar.vue'
 import AvatarCropDialog from './components/AvatarCropDialog.vue'
 import { usePermissionStore } from '@/stores/permission'
 import { useSessionStore } from '@/stores/session'
@@ -116,7 +117,6 @@ const form = reactive({ displayName: '', email: '', phone: '', avatar: '' })
 const pwd = reactive({ oldPassword: '', newPassword: '', confirm: '' })
 const uploadRef = ref<UploadInstance>()
 const crop = reactive({ visible: false, saving: false, file: null as File | null })
-const avatarText = computed(() => (form.displayName || 'N').slice(0, 1))
 const orgLabel = computed(() => [profile.value?.deptName, profile.value?.postName].filter(Boolean).join(' / ') || '--')
 
 watch(
